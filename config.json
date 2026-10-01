@@ -1,4 +1,4 @@
 {
-  "full_buy_threshold": null,
+  "full_buy_threshold": 6,
   "count_spx_in_score": false
 }
