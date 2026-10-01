@@ -115,6 +115,76 @@ function rowHTML(s, num, extraClass) {
 </div>`;
 }
 
+
+// ---------------------------------------------------------------- top-3 quick-glance cards
+const STATUS = { // by points of the live signal
+  calm: ['רגוע', '#8a94a6'], near: ['מתקרב', '#f2c94c'], extreme: ['פחד קיצוני', '#27ae60'], na: ['אין נתון', '#6b7280'],
+};
+const stKey = (s) => (!s || s.status === 'na' || s.value == null) ? 'na' : (s.points >= 1 ? 'extreme' : s.points >= 0.5 ? 'near' : 'calm');
+const TOP3 = [
+  { id: 'vix', name: 'VIX', sub: 'מדד הפחד', full: '≥35', half: '≥28' },
+  { id: 's5fi', name: 'S5FI', sub: 'מניות מעל ממוצע 50 יום', full: '≤5%', half: '≤15%' },
+  { id: 'fng', name: 'פחד וחמדנות', sub: 'CNN', full: '≤10', half: '≤25',
+    second: { id: 'vix_ratio', name: 'VIX/VIX3M', full: '≥1.10', half: '≥1.00' } },
+];
+function pill(k, small) {
+  const [t, c] = STATUS[k]; return `<span class="pill${small ? ' sm' : ''}" style="background:${c}">${t}</span>`;
+}
+function cardHTML(c, byId) {
+  const s = byId[c.id], k = stKey(s), col = STATUS[k][1];
+  const val = k === 'na' ? '<span class="cvna">אין נתון</span>' : esc(s.display);
+  const kept = s && s.status === 'kept' ? '<span class="ck">נתון אחרון</span>' : '';
+  const p = k === 'na' ? 0 : (s.bar_p || 0);
+  let second = '';
+  if (c.second) {
+    const s2 = byId[c.second.id], k2 = stKey(s2);
+    const v2 = k2 === 'na' ? 'אין נתון' : `<b style="color:${k2 === 'calm' ? '#eef2f7' : STATUS[k2][1]}"><bdi dir="ltr">${esc(s2.display)}</bdi></b>`;
+    second = `<div class="c2"><span class="c2n"><bdi dir="ltr">${c.second.name}</bdi></span> ${v2}
+      <span class="c2t">מלאה <bdi dir="ltr">${c.second.full}</bdi> · חצי <bdi dir="ltr">${c.second.half}</bdi></span>${pill(k2, true)}</div>`;
+  }
+  return `<div class="card" style="--c:${col}">
+  <div class="ctop"><div class="cl"><div class="cn">${bidi(c.name)} <span class="csub">${bidi(c.sub)}</span></div>
+      <div class="ct">נקודה מלאה <b><bdi dir="ltr">${c.full}</bdi></b> · חצי <bdi dir="ltr">${c.half}</bdi></div>
+      <div class="cst">${pill(k)}${kept}</div></div>
+    <div class="cv" style="color:${k === 'calm' ? '#ffffff' : col}">${val}</div></div>
+  <div class="cbar"><div style="width:${(p * 100).toFixed(1)}%;background:${col}"></div></div>${second}
+</div>`;
+}
+
+// ---------------------------------------------------------------- reliability ranking (static backtest stats)
+const BADGE = { high: ['גבוהה', '#27ae60'], medium: ['בינונית', '#f2c94c'], low: ['נמוכה', '#eb5757'] };
+function rankHTML(r, live) {
+  const [bt, bc] = BADGE[r.badge] || BADGE.low;
+  const sgn = (x) => (x > 0 ? '+' : x < 0 ? '−' : '') + Math.abs(x);
+  const since = r.history_from && r.history_from > '2001' ? ` (מאז <bdi dir="ltr">${r.history_from.slice(0, 4)}</bdi>)` : '';
+  const lead = r.lead_days == null ? '' : r.lead_days >= 0
+    ? ` · כ־<bdi dir="ltr">${r.lead_days}</bdi> ימים לפני השפל` : ` · כ־<bdi dir="ltr">${-r.lead_days}</bdi> ימים אחרי השפל`;
+  const lk = live ? stKey(live) : null;
+  return `<div class="rk">
+  <span class="rn">${r.rank}</span>
+  <div class="rb"><div class="rt"><span class="rname">${bidi(r.name)} <span class="rthr">${(r.full_threshold || []).map((t) => `<bdi dir="ltr">${esc(t)}</bdi>`).join(' + ')}</span></span><span class="badge" style="color:${bc};border-color:${bc}">${bt}</span></div>
+    <div class="rs">תפס <b><bdi dir="ltr">${r.caught}/${r.episodes}</bdi></b> ירידות${since}${lead}</div>
+    <div class="rs">אחרי שנה: <b><bdi dir="ltr">${r.pct_pos_1y}%</bdi></b> חיובי · חציון <b class="${r.median_1y >= 0 ? 'up' : 'dn'}"><bdi dir="ltr">${sgn(r.median_1y)}%</bdi></b>${r.pct_days_full_on >= 10 ? ` · דלוק ב־<bdi dir="ltr">${Math.round(r.pct_days_full_on)}%</bdi> מהימים` : ''}</div>
+    ${r.data_note ? `<div class="rd">${bidi(r.data_note)}</div>` : ''}</div>
+  ${lk ? `<span class="rlive" title="מצב עכשיו">${pill(lk, true)}</span>` : ''}
+</div>`;
+}
+function renderRank(st, d) {
+  if (!st || !Array.isArray(st.signals)) {
+    $('rankbase').innerHTML = ''; $('ranknote').innerHTML = ''; $('rank').innerHTML = '<div class="rd">אין נתון לדירוג כרגע.</div>'; return;
+  }
+  const byId = Object.fromEntries(d.signals.map((s) => [s.id, s]));
+  const b = st.baseline || {};
+  $('rankbase').innerHTML = `לפי בדיקה היסטורית על <bdi dir="ltr">${st.big_drops}</bdi> ירידות של <bdi dir="ltr">15%+</bdi> בנאסד״ק <bdi dir="ltr">100</bdi> מאז <bdi dir="ltr">2000</bdi>, כשהסימן בנקודה מלאה. התג בצד = המצב עכשיו. ` +
+    `<span class="rbl">לשם השוואה, יום אקראי: <b><bdi dir="ltr">${b.pct_pos_1y}%</bdi></b> חיובי אחרי שנה · חציון <b><bdi dir="ltr">+${b.median_1y}%</bdi></b> (<bdi dir="ltr">QQQ</bdi>)</span>`;
+  $('rank').innerHTML = st.signals.slice().sort((a, c) => a.rank - c.rank).map((r) => rankHTML(r, byId[r.id])).join('');
+  $('ranknote').innerHTML = '<b>מגבלות הנתונים:</b> בפועל יש רק כ־<bdi dir="ltr">11</bdi> אירועים, והימים הדלוקים סמוכים זה לזה — כלומר המדגם קטן. ' +
+    'ל־<bdi dir="ltr">VIX/VIX3M</bdi> יש נתונים רק מ־<bdi dir="ltr">2006</bdi>, ולפחד וחמדנות רק מ־<bdi dir="ltr">2011</bdi>. ' +
+    'ההיסטוריה של <bdi dir="ltr">S5FI</bdi> משוחזרת ממניות המדד של היום, ולכן היא מקורבת ואופטימית. ' +
+    'את פוט/קול בדקנו דרך מדד תחליף לתקופה קצרה. ' +
+    '"ימים לפני השפל" = חציון הימים מהנקודה המלאה הראשונה ועד השפל; ככל שהמספר גבוה יותר, הסימן מקדים מדי. עבר אינו מבטיח עתיד.';
+}
+
 // ---------------------------------------------------------------- history chart
 function histSVG(hist, max) {
   const W = 600, H = 190, L = 30, Rr = 10, T = 10, B = 26;
@@ -139,7 +209,7 @@ function histSVG(hist, max) {
 const tierIndex = (t) => TIERS.findIndex(([a, b]) => t < b);
 
 // ---------------------------------------------------------------- render
-function render(d, cfg, hist) {
+function render(d, cfg, hist, stats) {
   const countSpx = cfg.count_spx_in_score ?? d.count_spx_in_score ?? false;
   const thr = cfg.full_buy_threshold !== undefined ? cfg.full_buy_threshold : d.full_buy_threshold;
   const core = d.signals.reduce((a, s) => a + (s.points || 0), 0);
@@ -165,7 +235,14 @@ function render(d, cfg, hist) {
     `<div class="center"><div class="big">${fmtNum(total)}<small>/${max}</small></div><span class="tier" style="background:${tier[3]}">${esc(tier[2])}</span></div>`;
   $('legend').innerHTML = TIERS.map((t, i) => `<div class="chip${i === ti ? ' on' : ''}"><span class="sw" style="background:${t[3]}"></span><span class="cn">${esc(t[2])}</span><span class="cr"><bdi dir="ltr">${t[4]}</bdi></span></div>`).join('');
 
-  $('rows').innerHTML = d.signals.map((s, i) => rowHTML(s, i + 1)).join('');
+  const byId = Object.fromEntries(d.signals.map((s) => [s.id, s]));
+  $('top3').innerHTML = TOP3.map((c) => cardHTML(c, byId)).join('');
+  renderRank(stats, d);
+  // the 10 rows, ordered by the reliability rank when available (number = rank)
+  const rk = Object.fromEntries(((stats && stats.signals) || []).map((r) => [r.id, r.rank]));
+  const ordered = d.signals.map((s, i) => ({ s, n: rk[s.id] ?? 100 + i })).sort((a, b) => a.n - b.n);
+  const ranked = ordered.every((o) => o.n < 100);
+  $('rows').innerHTML = ordered.map((o, i) => rowHTML(o.s, ranked ? o.n : i + 1)).join('');
   $('spxnote').textContent = countSpx ? '(נספר בציון)' : '(לא נספר בציון)';
   $('spxrows').innerHTML = (d.spx_signals || []).map((s, i) => rowHTML(s, countSpx ? 11 + i : '•', 'spx')).join('');
 
@@ -202,8 +279,8 @@ async function load() {
   if (loading) return; loading = true;
   $('refresh').classList.add('spin'); $('ptr').classList.add('loading');
   try {
-    const [d, cfg, hist] = await Promise.all([getJSON('data/latest.json'), getJSON('config.json').catch(() => ({})), getJSON('data/history.json').catch(() => [])]);
-    render(d, cfg || {}, hist);
+    const [d, cfg, hist, stats] = await Promise.all([getJSON('data/latest.json'), getJSON('config.json').catch(() => ({})), getJSON('data/history.json').catch(() => []), getJSON('data/indicator_stats.json').catch(() => null)]);
+    render(d, cfg || {}, hist, stats);
   } catch (e) {
     $('alerts').innerHTML = `<div class="alert err">לא הצלחתי לטעון את הנתונים. בדקי חיבור ונסי לרענן.</div>`;
     console.error(e);

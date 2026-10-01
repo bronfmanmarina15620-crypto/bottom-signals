@@ -4,6 +4,8 @@ Phone-friendly Hebrew dashboard (static site on GitHub Pages) that scores 10 "ma
 (0 / 0.5 / 1 point each, 0–10 total) plus 2 S&P 500 market-health rows, and refreshes itself via GitHub Actions.
 
 - `index.html`, `style.css`, `app.js` — the page (HTML/CSS/SVG, RTL). Reads `data/latest.json`, `data/history.json`, `config.json`.
+- `scripts/indicator_stats.py` → `data/indicator_stats.json` — static historical reliability ranking of the 10 signals
+  (run by hand from the offline backtest output `../backtest/out`; NOT recomputed by the workflow).
 - `scripts/update.py` — standard-library-only fetcher/scorer. Every source has its own try/except; on failure the last
   good value is kept with its own timestamp, otherwise the signal shows "אין נתון" (0 points). Nothing is guessed.
 - `.github/workflows/update-data.yml` — cron: every 30 min 13:30–20:30 UTC Mon–Fri, 05:00 UTC and 21:20 UTC; also manual.
@@ -12,7 +14,7 @@ Phone-friendly Hebrew dashboard (static site on GitHub Pages) that scores 10 "ma
 
 ```json
 {
-  "full_buy_threshold": null,
+  "full_buy_threshold": 6,
   "count_spx_in_score": false
 }
 ```
