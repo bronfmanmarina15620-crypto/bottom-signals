@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מד סימני תחתית</title>
+<meta name="description" content="מד סימני תחתית — כמה פחד יש בשוק? מתעדכן אוטומטית.">
+<meta name="theme-color" content="#0f141c">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="סימני תחתית">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="ptr" class="ptr"><span class="ptr-ico">↻</span></div>
+<main class="wrap">
+  <header class="hdr">
+    <div>
+      <h1>מד סימני תחתית</h1>
+      <div class="sub">כמה פחד יש בשוק? ציון גבוה = הזדמנות קנייה</div>
+    </div>
+    <button id="refresh" class="refresh" aria-label="רענון" title="רענון">↻</button>
+  </header>
+  <div id="updated" class="updated">טוען נתונים…</div>
+  <div id="alerts"></div>
+
+  <section class="gauge" id="gauge" aria-label="ציון"></section>
+  <div class="legend" id="legend"></div>
+
+  <h2 class="sec">מרחק מהסף <span>— קו לבן = חצי נקודה · סוף הפס (ירוק) = נקודה מלאה · עיגול = ניקוד</span></h2>
+  <div id="rows"></div>
+
+  <h2 class="sec spx-h">בריאות השוק — <bdi dir="ltr">S&amp;P 500</bdi> <span id="spxnote">(לא נספר בציון)</span></h2>
+  <div id="spxrows"></div>
+
+  <div class="ys" id="yields"></div>
+  <div class="info" id="info"></div>
+  <div class="note" id="buynote"></div>
+
+  <h2 class="sec">היסטוריית הציון היומי</h2>
+  <div class="hist" id="hist"></div>
+
+  <footer class="foot">
+    <p>הנתונים מתעדכנים אוטומטית כל כ־30 דקות בשעות המסחר בארה״ב, ופעם בבוקר ופעם אחרי הסגירה. מקור שנכשל מסומן — לא מנחשים ערכים.</p>
+    <p class="src">מקורות: <bdi dir="ltr">Yahoo Finance</bdi> · <bdi dir="ltr">CNN Fear &amp; Greed</bdi> · <bdi dir="ltr">AAII</bdi> · <bdi dir="ltr">FRED</bdi> · <bdi dir="ltr">ChartRow</bdi>. אין כאן ייעוץ השקעות.</p>
+  </footer>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
