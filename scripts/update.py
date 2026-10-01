@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """Bottom-signals updater for the GitHub Pages app.
 
-Fetches live public data, scores the 10 bottom signals (0 / 0.5 / 1 each, same rules as
-bottom_score.py) plus 2 S&P 500 market-health rows, and writes:
+Fetches live public data, scores the 6 bottom signals (0 / 0.5 / 1 each, same rules as
+bottom_score.py) plus 2 S&P 500 market-health rows (shown, not counted by default), and writes:
   data/latest.json   - everything the page needs
   data/history.json  - one score per US trading day (last run of the day wins)
 Robust by design: every source is fetched in its own try/except. If a source fails, the last
 good value is kept with its own timestamp (status "kept"); if there never was one, the signal
-is marked "na" (shown as 'אין נתון', 0 points). Nothing is ever guessed.
+is marked "na" (shown as 'אין נתון') and left out of the score. Nothing is ever guessed.
+Score = points earned / points available (signals with data) x 10, i.e. normalized to 0-10.
+The 4 low-reliability signals (NDX drawdown, NDX vs 200d, HY OAS, macro relief) were removed on 1.10.2026.
 Standard library only (no pip install needed).
 """
-import csv, datetime, email.utils, html, io, json, os, re, sys, time, traceback, urllib.request
+import datetime, email.utils, html, json, os, re, sys, time, traceback, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from zoneinfo import ZoneInfo
 
@@ -22,7 +24,6 @@ TIERS = [(3, 'אין פחד עדיין'), (5, 'פחד מצטבר — להתכו�
 BROWSER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36'
 H_CNN = {'User-Agent': BROWSER, 'Referer': 'https://www.cnn.com/', 'Accept': 'application/json, text/plain, */*'}
 H_WEB = {'User-Agent': BROWSER, 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'}
-H_CURL = {'User-Agent': 'curl/8.5.0'}
 LOG = []
 
 def log(*a):
@@ -98,10 +99,6 @@ def signed(x, nd=1, suffix='%'):
 # value is always in "fear units" with direction up (higher = more fear) or down (lower = more fear),
 # exactly like the values JSON consumed by bottom_dashboard.py.
 DEFS = [
-    dict(id='ndx_dd', label='ירידת נאסד״ק 100 מהשיא', half=10, full=20, base=0, direction='up',
-         half_display='10%', full_display='20%', source='Yahoo ^NDX', kind='live'),
-    dict(id='ndx_200', label='נאסד״ק מול ממוצע 200', half=5, full=12, base=0, direction='up',
-         half_display='−5%', full_display='−12%', source='Yahoo ^NDX', kind='live'),
     dict(id='vix', label='VIX', half=28, full=35, base=12, direction='up',
          half_display='28', full_display='35', source='Yahoo ^VIX', kind='live'),
     dict(id='vix_ratio', label='VIX/VIX3M', half=1.0, full=1.10, base=0.80, direction='up',
@@ -114,10 +111,6 @@ DEFS = [
          half_display='45%', full_display='55%', source='AAII (שבועי)', kind='live'),
     dict(id='putcall', label='פוט/קול (CNN)', half=25, full=10, base=50, direction='down',
          half_display='≤25', full_display='≤10', source='CNN Fear & Greed', kind='live'),
-    dict(id='hy', label='מרווח אג״ח זבל', half=4.0, full=5.0, base=2.5, direction='up',
-         half_display='4.0%', full_display='5.0%', source='FRED BAMLH0A0HYM2', kind='live', date_only=True),
-    dict(id='macro', label='הקלה במאקרו', half=25, full=25, base=0, direction='up', half_mark=0.5,
-         half_display='25bp', full_display='+דולר −2%', source='Yahoo ^TNX, DX-Y.NYB', kind='live'),
 ]
 SPX_DEFS = [
     dict(id='spx_dd', label='ירידת S&P 500 מהשיא', half=10, full=20, base=0, direction='up',
@@ -225,24 +218,7 @@ def f_aaii():
                     note=f'שוורים {bull:.1f}% · פער {signed(spread, 1)}', as_of=as_of)
     raise ValueError('AAII: no Sentiment Survey item in feed')
 
-def f_hy():
-    rows = list(csv.reader(io.StringIO(get('https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2', H_CURL))))
-    last = [r for r in rows[1:] if len(r) > 1 and r[1] not in ('', '.')][-1]
-    v = float(last[1]); d = datetime.date.fromisoformat(last[0])
-    return dict(value=v, display=f'{v:.2f}%', points=pts(v, 4.0, 5.0, False), as_of=iso_date_ny(d, 17))
-
-def f_macro():
-    t, x = yahoo('%5ETNX', '6mo'), yahoo('DX-Y.NYB', '6mo')
-    tnx_off = (max(t['c'][-63:]) - t['c'][-1]) * 100
-    dxy_off = (1 - x['c'][-1] / max(x['c'][-63:])) * 100
-    p = (0.5 if tnx_off >= 25 else 0) + (0.5 if dxy_off >= 2 else 0)
-    prog = 0.5 * min(max(tnx_off, 0) / 25, 1) + 0.5 * min(max(dxy_off, 0) / 2, 1)
-    return dict(value=round(max(tnx_off, 0), 1), display=f'{max(tnx_off, 0):.0f}bp', points=p, progress=round(prog, 4),
-                note=f'10Y: {max(tnx_off, 0):.0f}bp מתחת לשיא 3 חודשים · דולר: {max(dxy_off, 0):.1f}% מתחת לשיא',
-                as_of=iso_ts(min(t['time'], x['time'])))
-
-FUNCS = {'ndx_dd': f_dd('%5ENDX'), 'ndx_200': f_200('%5ENDX'), 'vix': f_vix, 'vix_ratio': f_vix_ratio, 'fng': f_fng,
-         's5fi': f_s5fi, 'aaii': f_aaii, 'putcall': f_putcall, 'hy': f_hy, 'macro': f_macro,
+FUNCS = {'vix': f_vix, 'vix_ratio': f_vix_ratio, 'fng': f_fng, 's5fi': f_s5fi, 'aaii': f_aaii, 'putcall': f_putcall,
          'spx_dd': f_dd('%5EGSPC'), 'spx_200': f_200('%5EGSPC')}
 
 def run_signal(d, prev, fetched_at):
@@ -301,21 +277,26 @@ def main():
             run_quote('ndx', '%5ENDX', 'נאסד״ק 100', lambda v: f'{v:,.0f}', prev, fetched_at),
             run_quote('qqq', 'QQQ', 'QQQ', lambda v: f'${v:.2f}', prev, fetched_at)]
 
-    core = sum(s['points'] for s in signals); spx_pts = sum(s['points'] for s in spx)
-    total = core + (spx_pts if count_spx else 0)
+    avail = [s for s in signals if s['status'] != 'na']; spx_avail = [s for s in spx if s['status'] != 'na']
+    core = sum(s['points'] for s in avail); spx_pts = sum(s['points'] for s in spx_avail)
+    norm = lambda p, n: round(p / n * 10, 2) if n else 0.0
+    core_norm = norm(core, len(avail)); with_spx = norm(core + spx_pts, len(avail) + len(spx_avail))
+    total = with_spx if count_spx else core_norm
     tier_i = next(i for i, (lim, _) in enumerate(TIERS) if total < lim)
     ndx_q = next(q for q in info if q['id'] == 'ndx')
     market_time = ndx_q.get('as_of') if ndx_q.get('status') != 'na' else None
     out = {
         'generated_at': fetched_at,
         'market_time': market_time,
-        'score': total, 'score_core': core, 'score_spx': spx_pts, 'count_spx_in_score': count_spx,
-        'score_max': 10 + (2 if count_spx else 0),
+        'score': total, 'score_max': 10, 'score_method': 'points earned / points available x 10',
+        'score_core': core_norm, 'score_with_spx': with_spx, 'count_spx_in_score': count_spx,
+        'points': core, 'points_available': len(avail), 'signals_count': len(signals), 'score_spx': spx_pts,
         'tier_index': tier_i, 'tier': TIERS[tier_i][1],
         'missing': [s['id'] for s in signals + spx if s['status'] == 'na'],
         'kept': [s['id'] for s in signals + spx if s['status'] == 'kept'],
         'signals': signals, 'spx_signals': spx, 'yields': yields, 'info': info,
         'full_buy_threshold': cfg.get('full_buy_threshold'),
+        'full_buy_threshold_note': cfg.get('full_buy_threshold_note'),
         'log': LOG[-30:],
     }
     with open(os.path.join(DATA, 'latest.json'), 'w', encoding='utf-8') as f:
@@ -325,13 +306,14 @@ def main():
     hist = load_json(hist_path, [])
     day = (datetime.datetime.fromisoformat(market_time.replace('Z', '+00:00')).astimezone(NY).date()
            if market_time else datetime.datetime.now(NY).date()).isoformat()
-    entry = {'d': day, 'score': total, 'core': core, 'spx': spx_pts, 'tier': tier_i, 'missing': len(out['missing']), 't': fetched_at}
+    entry = {'d': day, 'score': total, 'core': core_norm, 'with_spx': with_spx, 'pts': core, 'avail': len(avail),
+             'spx': spx_pts, 'tier': tier_i, 'missing': len(out['missing']), 't': fetched_at, 'v': 6}
     hist = [h for h in hist if h.get('d') != day] + [entry]
     hist.sort(key=lambda h: h['d'])
     with open(hist_path, 'w', encoding='utf-8') as f:
         json.dump(hist[-3000:], f, ensure_ascii=False, indent=0)
 
-    print(f'score {total:g}/{out["score_max"]} ({TIERS[tier_i][1]}) | core {core:g} | S&P rows {spx_pts:g} | '
+    print(f'score {total:g}/10 ({TIERS[tier_i][1]}) | points {core:g}/{len(avail)} available of {len(signals)} | S&P rows {spx_pts:g} | '
           f'missing {out["missing"]} | kept {out["kept"]}')
     for s in signals + spx:
         print(f'  {s["points"]:>3}  {s["id"]:<10} {s["display"]:<10} {s["status"]}')

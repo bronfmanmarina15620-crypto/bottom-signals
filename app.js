@@ -1,11 +1,19 @@
 'use strict';
 const TZ = 'Asia/Jerusalem';
 const TIERS = [ // [from, to(excl), name, color, range label]
-  [0, 3, 'אין פחד עדיין', '#8a94a6', '0–2.5'],
-  [3, 5, 'פחד מצטבר — להתכונן', '#f2c94c', '3–4.5'],
-  [5, 7, 'פחד אמיתי — אזור קנייה', '#f2994a', '5–6.5'],
-  [7, 999, 'כניעה', '#27ae60', '7+'],
+  [0, 3, 'אין פחד עדיין', '#8a94a6', '0–2.9'],
+  [3, 5, 'פחד מצטבר — להתכונן', '#f2c94c', '3–4.9'],
+  [5, 7, 'פחד אמיתי — אזור קנייה', '#f2994a', '5–6.9'],
+  [7, 999, 'כניעה', '#27ae60', '7–10'],
 ];
+// The 6 scored signals (NDX drawdown, NDX vs 200d, HY OAS and macro relief were removed on 1.10.2026).
+// Score = points earned / points available (signals with data) x 10.
+const SCORED = ['vix', 'vix_ratio', 'fng', 's5fi', 'aaii', 'putcall'];
+const hasData = (s) => s && s.status !== 'na' && s.value != null;
+function normScore(list) {
+  const av = list.filter(hasData), pts = av.reduce((a, s) => a + (s.points || 0), 0);
+  return { pts, n: av.length, score: av.length ? pts / av.length * 10 : 0 };
+}
 const COLORS = { gray: '#6b7280', yellow: '#f2c94c', green: '#27ae60' };
 const $ = (id) => document.getElementById(id);
 
@@ -169,15 +177,14 @@ function rankHTML(r, live) {
   ${lk ? `<span class="rlive" title="מצב עכשיו">${pill(lk, true)}</span>` : ''}
 </div>`;
 }
-function renderRank(st, d) {
+function renderRank(st, byId) {
   if (!st || !Array.isArray(st.signals)) {
     $('rankbase').innerHTML = ''; $('ranknote').innerHTML = ''; $('rank').innerHTML = '<div class="rd">אין נתון לדירוג כרגע.</div>'; return;
   }
-  const byId = Object.fromEntries(d.signals.map((s) => [s.id, s]));
   const b = st.baseline || {};
   $('rankbase').innerHTML = `לפי בדיקה היסטורית על <bdi dir="ltr">${st.big_drops}</bdi> ירידות של <bdi dir="ltr">15%+</bdi> בנאסד״ק <bdi dir="ltr">100</bdi> מאז <bdi dir="ltr">2000</bdi>, כשהסימן בנקודה מלאה. התג בצד = המצב עכשיו. ` +
     `<span class="rbl">לשם השוואה, יום אקראי: <b><bdi dir="ltr">${b.pct_pos_1y}%</bdi></b> חיובי אחרי שנה · חציון <b><bdi dir="ltr">+${b.median_1y}%</bdi></b> (<bdi dir="ltr">QQQ</bdi>)</span>`;
-  $('rank').innerHTML = st.signals.slice().sort((a, c) => a.rank - c.rank).map((r) => rankHTML(r, byId[r.id])).join('');
+  $('rank').innerHTML = st.signals.filter((r) => SCORED.includes(r.id)).slice().sort((a, c) => a.rank - c.rank).map((r) => rankHTML(r, byId[r.id])).join('');
   $('ranknote').innerHTML = '<b>מגבלות הנתונים:</b> בפועל יש רק כ־<bdi dir="ltr">11</bdi> אירועים, והימים הדלוקים סמוכים זה לזה — כלומר המדגם קטן. ' +
     'ל־<bdi dir="ltr">VIX/VIX3M</bdi> יש נתונים רק מ־<bdi dir="ltr">2006</bdi>, ולפחד וחמדנות רק מ־<bdi dir="ltr">2011</bdi>. ' +
     'ההיסטוריה של <bdi dir="ltr">S5FI</bdi> משוחזרת ממניות המדד של היום, ולכן היא מקורבת ואופטימית. ' +
@@ -212,9 +219,9 @@ const tierIndex = (t) => TIERS.findIndex(([a, b]) => t < b);
 function render(d, cfg, hist, stats) {
   const countSpx = cfg.count_spx_in_score ?? d.count_spx_in_score ?? false;
   const thr = cfg.full_buy_threshold !== undefined ? cfg.full_buy_threshold : d.full_buy_threshold;
-  const core = d.signals.reduce((a, s) => a + (s.points || 0), 0);
-  const spx = (d.spx_signals || []).reduce((a, s) => a + (s.points || 0), 0);
-  const total = core + (countSpx ? spx : 0), max = countSpx ? 12 : 10;
+  const sigs = d.signals.filter((s) => SCORED.includes(s.id));
+  const counted = countSpx ? sigs.concat(d.spx_signals || []) : sigs;
+  const ns = normScore(counted), total = ns.score, max = 10;
   const ti = tierIndex(total), tier = TIERS[ti];
 
   // updated + alerts
@@ -224,27 +231,29 @@ function render(d, cfg, hist, stats) {
   const alerts = [];
   const staleH = Math.max(weekdayHours(gen), weekdayHours(d.market_time));
   if (staleH > 30) alerts.push(`<div class="alert stale">⚠ הנתונים ישנים — העדכון האחרון לפני יותר מיום מסחר. ייתכן שהעדכון האוטומטי נתקע.</div>`);
-  const all = d.signals.concat(d.spx_signals || []);
+  const all = sigs.concat(d.spx_signals || []);
   const miss = all.filter((s) => s.status === 'na'), kept = all.filter((s) => s.status === 'kept');
-  if (miss.length) alerts.push(`<div class="alert miss">אין נתון ל־${miss.length} סימנים (${miss.map((s) => bidi(s.label)).join(', ')}) — נספרים כ־0 עד שהמקור יחזור.</div>`);
+  if (miss.length) alerts.push(`<div class="alert miss">אין נתון ל־${miss.length} סימנים (${miss.map((s) => bidi(s.label)).join(', ')}) — לא נספרים — הציון מחושב מתוך הסימנים הזמינים.</div>`);
   if (kept.length) alerts.push(`<div class="alert miss">ל־${kept.length} סימנים מוצג הנתון התקין האחרון כי המקור נכשל בעדכון זה.</div>`);
   $('alerts').innerHTML = alerts.join('');
 
   // gauge
   $('gauge').innerHTML = gaugeSVG(total, max, tier[3], thr) +
     `<div class="center"><div class="big">${fmtNum(total)}<small>/${max}</small></div><span class="tier" style="background:${tier[3]}">${esc(tier[2])}</span></div>`;
+  $('ptsl').innerHTML = `<bdi dir="ltr">${fmtNum(ns.pts)}</bdi> נקודות מתוך <bdi dir="ltr">${ns.n}</bdi> אפשריות` +
+    (ns.n < counted.length ? ` · <bdi dir="ltr">${counted.length - ns.n}</bdi> סימנים בלי נתון` : '') + ` · <bdi dir="ltr">${counted.length}</bdi> סימנים בציון`;
   $('legend').innerHTML = TIERS.map((t, i) => `<div class="chip${i === ti ? ' on' : ''}"><span class="sw" style="background:${t[3]}"></span><span class="cn">${esc(t[2])}</span><span class="cr"><bdi dir="ltr">${t[4]}</bdi></span></div>`).join('');
 
-  const byId = Object.fromEntries(d.signals.map((s) => [s.id, s]));
+  const byId = Object.fromEntries(sigs.map((s) => [s.id, s]));
   $('top3').innerHTML = TOP3.map((c) => cardHTML(c, byId)).join('');
-  renderRank(stats, d);
-  // the 10 rows, ordered by the reliability rank when available (number = rank)
+  renderRank(stats, byId);
+  // the 6 rows, ordered by the reliability rank when available (number = rank)
   const rk = Object.fromEntries(((stats && stats.signals) || []).map((r) => [r.id, r.rank]));
-  const ordered = d.signals.map((s, i) => ({ s, n: rk[s.id] ?? 100 + i })).sort((a, b) => a.n - b.n);
+  const ordered = sigs.map((s, i) => ({ s, n: rk[s.id] ?? 100 + i })).sort((a, b) => a.n - b.n);
   const ranked = ordered.every((o) => o.n < 100);
   $('rows').innerHTML = ordered.map((o, i) => rowHTML(o.s, ranked ? o.n : i + 1)).join('');
   $('spxnote').textContent = countSpx ? '(נספר בציון)' : '(לא נספר בציון)';
-  $('spxrows').innerHTML = (d.spx_signals || []).map((s, i) => rowHTML(s, countSpx ? 11 + i : '•', 'spx')).join('');
+  $('spxrows').innerHTML = (d.spx_signals || []).map((s, i) => rowHTML(s, countSpx ? sigs.length + 1 + i : '•', 'spx')).join('');
 
   $('yields').innerHTML = (d.yields || []).map((y) => {
     if (y.value == null) return `<div class="y">${esc(y.label)}<span class="v" style="direction:rtl">אין נתון</span><span class="yl">קו אזהרה <bdi dir="ltr">${y.line}%</bdi></span></div>`;
@@ -260,13 +269,17 @@ function render(d, cfg, hist, stats) {
   }).join('');
 
   const note = $('buynote');
-  if (thr == null) { note.className = 'note pending'; note.innerHTML = 'סף הקנייה המלאה ב־<bdi dir="ltr">QQQ</bdi> — טרם נקבע'; }
-  else if (total >= thr) { note.className = 'note hit'; note.innerHTML = `✅ הגענו לסף הקנייה המלאה ב־<bdi dir="ltr">QQQ</bdi> (ציון <bdi dir="ltr">${thr}</bdi> ומעלה)`; }
-  else { note.className = 'note'; note.innerHTML = `סף הקנייה המלאה ב־<bdi dir="ltr">QQQ</bdi>: ציון <bdi dir="ltr">${thr}</bdi> ומעלה`; }
+  const tnote = cfg.full_buy_threshold_note ?? d.full_buy_threshold_note;
+  const tn = tnote ? `<div class="tnote">${bidi(tnote)}</div>` : '';
+  if (thr == null) { note.className = 'note pending'; note.innerHTML = 'סף הקנייה המלאה ב־<bdi dir="ltr">QQQ</bdi> — טרם נקבע' + tn; }
+  else if (total >= thr) { note.className = 'note hit'; note.innerHTML = `✅ הגענו לסף הקנייה המלאה ב־<bdi dir="ltr">QQQ</bdi> (ציון <bdi dir="ltr">${thr}</bdi> ומעלה)` + tn; }
+  else { note.className = 'note'; note.innerHTML = `סף הקנייה המלאה ב־<bdi dir="ltr">QQQ</bdi>: ציון <bdi dir="ltr">${thr}/10</bdi> ומעלה` + tn; }
 
   const h = Array.isArray(hist) ? hist : [];
-  const hs = h.map((x) => ({ ...x, score: countSpx ? (x.core ?? x.score) + (x.spx ?? 0) : (x.core ?? x.score) }));
-  $('hist').innerHTML = histSVG(hs, max) + `<div class="hn">${h.length <= 1 ? 'ההיסטוריה מתחילה עכשיו — נשמרת נקודה אחת לכל יום מסחר.' : `${h.length} ימי מסחר · ימין = הישן, שמאל = החדש`}</div>`;
+  // v6 entries hold the normalized 6-signal score; older entries (10-signal raw score) are not comparable and are skipped
+  const h6 = h.filter((x) => x.v === 6);
+  const hs = h6.map((x) => ({ ...x, score: countSpx ? (x.with_spx ?? x.score) : (x.core ?? x.score) }));
+  $('hist').innerHTML = histSVG(hs, max) + `<div class="hn">${hs.length <= 1 ? 'ההיסטוריה מתחילה עכשיו — נשמרת נקודה אחת לכל יום מסחר.' : `${hs.length} ימי מסחר · ימין = הישן, שמאל = החדש`}</div>`;
 }
 
 // ---------------------------------------------------------------- load / refresh

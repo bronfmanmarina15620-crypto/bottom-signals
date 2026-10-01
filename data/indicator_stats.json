@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-01T12:00:15Z",
+ "generated_at": "2026-10-01T14:18:43Z",
  "source": "offline backtest: daily_score_series.csv + episodes.csv (2000-01-03 .. 2026-09-30)",
  "big_drops": 11,
  "big_drop_threshold_pct": 15,
@@ -142,95 +142,6 @@
    "score": 2.37,
    "badge": "medium",
    "rank": 6
-  },
-  {
-   "id": "macro",
-   "backtest_col": "s10_macro",
-   "name": "הקלה במאקרו",
-   "full_threshold": [
-    "10Y −25bp",
-    "DXY −2%"
-   ],
-   "data_note": "נדלק לעתים קרובות מאוד",
-   "history_from": "2000-01-03",
-   "caught": 11,
-   "episodes": 11,
-   "lead_days": 48,
-   "full_on_days": 1914,
-   "pct_days_full_on": 28.5,
-   "pct_pos_1y": 79,
-   "median_1y": 19,
-   "pct_pos_1y_exact": 0.7874,
-   "median_1y_exact": 0.193,
-   "score": 0.1,
-   "badge": "low",
-   "rank": 7
-  },
-  {
-   "id": "hy",
-   "backtest_col": "s9_hy_oas",
-   "name": "מרווח אג״ח זבל",
-   "full_threshold": [
-    "≥5%"
-   ],
-   "data_note": "",
-   "history_from": "2000-01-03",
-   "caught": 8,
-   "episodes": 11,
-   "lead_days": 84,
-   "full_on_days": 2731,
-   "pct_days_full_on": 40.6,
-   "pct_pos_1y": 71,
-   "median_1y": 16,
-   "pct_pos_1y_exact": 0.7111,
-   "median_1y_exact": 0.1615,
-   "score": -19.44,
-   "badge": "low",
-   "rank": 8
-  },
-  {
-   "id": "ndx_dd",
-   "backtest_col": "s1_ndx_dd",
-   "name": "ירידת נאסד״ק מהשיא",
-   "full_threshold": [
-    "≥20%"
-   ],
-   "data_note": "בבדיקה: ירידה משיא 52 שבועות",
-   "history_from": "2000-01-03",
-   "caught": 6,
-   "episodes": 11,
-   "lead_days": 149,
-   "full_on_days": 1182,
-   "pct_days_full_on": 17.6,
-   "pct_pos_1y": 55,
-   "median_1y": 16,
-   "pct_pos_1y_exact": 0.5474,
-   "median_1y_exact": 0.1608,
-   "score": -39.54,
-   "badge": "low",
-   "rank": 9
-  },
-  {
-   "id": "ndx_200",
-   "backtest_col": "s2_ndx_vs200",
-   "name": "נאסד״ק מתחת לממוצע 200",
-   "full_threshold": [
-    "≥12%"
-   ],
-   "data_note": "",
-   "history_from": "2000-01-03",
-   "caught": 6,
-   "episodes": 11,
-   "lead_days": 146,
-   "full_on_days": 662,
-   "pct_days_full_on": 9.8,
-   "pct_pos_1y": 53,
-   "median_1y": 10,
-   "pct_pos_1y_exact": 0.5317,
-   "median_1y_exact": 0.0965,
-   "score": -45.74,
-   "badge": "low",
-   "rank": 10
   }
  ]
 }

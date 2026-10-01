@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static backtest stats for the 10 bottom signals -> data/indicator_stats.json.
+"""Static backtest stats for the 6 scored bottom signals -> data/indicator_stats.json.
 
 Run once by hand (NOT by the update workflow):
     python3 scripts/indicator_stats.py [path/to/backtest/out]
@@ -31,6 +31,7 @@ SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, '..', '..', 'back
 OUT = os.path.join(HERE, '..', 'data', 'indicator_stats.json')
 H1Y = 252
 
+# (NDX drawdown, NDX vs 200d, HY OAS and macro relief were removed from the score on 1.10.2026)
 # backtest column -> live signal id, Hebrew rule text, data note (Hebrew, empty = full history)
 SIGNALS = [
     ('s3_vix', 'vix', 'VIX', ['≥35'], ''),
@@ -39,10 +40,6 @@ SIGNALS = [
     ('s5_fear_greed', 'fng', 'פחד וחמדנות CNN', ['≤10'], 'נתונים רק מ־2011 — 6 ירידות בלבד'),
     ('s7_aaii', 'aaii', 'AAII דובים', ['≥55%'], ''),
     ('s8_putcall_sub', 'putcall', 'פוט/קול', ['≥0.90'], 'נבדק דרך מדד תחליף (יחס פוט/קול של CBOE במניות, בשנים 2006 עד 2019) — לא אותו מדד שמוצג כאן'),
-    ('s10_macro', 'macro', 'הקלה במאקרו', ['10Y −25bp', 'DXY −2%'], 'נדלק לעתים קרובות מאוד'),
-    ('s9_hy_oas', 'hy', 'מרווח אג״ח זבל', ['≥5%'], ''),
-    ('s1_ndx_dd', 'ndx_dd', 'ירידת נאסד״ק מהשיא', ['≥20%'], 'בבדיקה: ירידה משיא 52 שבועות'),
-    ('s2_ndx_vs200', 'ndx_200', 'נאסד״ק מתחת לממוצע 200', ['≥12%'], ''),
 ]
 
 

@@ -25,7 +25,7 @@
   <header class="hdr">
     <div>
       <h1>מד סימני תחתית</h1>
-      <div class="sub">כמה פחד יש בשוק? ציון גבוה = הזדמנות קנייה</div>
+      <div class="sub">כמה פחד יש בשוק? <bdi dir="ltr">6</bdi> סימנים, ציון <bdi dir="ltr">0–10</bdi> · ציון גבוה = הזדמנות קנייה</div>
     </div>
     <button id="refresh" class="refresh" aria-label="רענון" title="רענון">↻</button>
   </header>
@@ -36,6 +36,7 @@
   <div class="cards" id="top3"></div>
 
   <section class="gauge" id="gauge" aria-label="ציון"></section>
+  <div class="ptsl" id="ptsl"></div>
   <div class="legend" id="legend"></div>
 
   <h2 class="sec rank-h">דירוג האינדיקטורים — מי באמת חוזה תחתית</h2>
@@ -58,8 +59,8 @@
   <div class="hist" id="hist"></div>
 
   <footer class="foot">
-    <p>הנתונים מתעדכנים אוטומטית כל כ־30 דקות בשעות המסחר בארה״ב, ופעם בבוקר ופעם אחרי הסגירה. מקור שנכשל מסומן — לא מנחשים ערכים.</p>
-    <p class="src">מקורות: <bdi dir="ltr">Yahoo Finance</bdi> · <bdi dir="ltr">CNN Fear &amp; Greed</bdi> · <bdi dir="ltr">AAII</bdi> · <bdi dir="ltr">FRED</bdi> · <bdi dir="ltr">ChartRow</bdi>. אין כאן ייעוץ השקעות.</p>
+    <p>הנתונים מתעדכנים אוטומטית כל כ־30 דקות בשעות המסחר בארה״ב, ופעם בבוקר ופעם אחרי הסגירה. מקור שנכשל מסומן — לא מנחשים ערכים. הציון = הנקודות שנצברו מתוך הנקודות האפשריות (סימנים עם נתון), כפול <bdi dir="ltr">10</bdi>.</p>
+    <p class="src">מקורות: <bdi dir="ltr">Yahoo Finance</bdi> · <bdi dir="ltr">CNN Fear &amp; Greed</bdi> · <bdi dir="ltr">AAII</bdi> · <bdi dir="ltr">ChartRow</bdi>. אין כאן ייעוץ השקעות.</p>
   </footer>
 </main>
 <script src="app.js"></script>

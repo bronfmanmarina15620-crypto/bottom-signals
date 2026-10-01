@@ -1,5 +1,5 @@
 // Network-first service worker: always try fresh data, fall back to the last cached copy when offline.
-const CACHE = 'bottom-signals-v2';
+const CACHE = 'bottom-signals-v3';
 const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'manifest.json', 'icons/icon-192.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).catch(() => {})); self.skipWaiting(); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k))))); self.clients.claim(); });

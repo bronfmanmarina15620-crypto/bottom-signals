@@ -1,4 +1,5 @@
 {
   "full_buy_threshold": 6,
+  "full_buy_threshold_note": "הסף נקבע לציון הקודם של 10 סימנים — ממתין לאישור מחדש לציון של 6 הסימנים",
   "count_spx_in_score": false
 }

@@ -66,6 +66,7 @@ h1{font-size:26px;font-weight:800;line-height:1.15}
 .center{position:absolute;left:0;right:0;top:36%;text-align:center;pointer-events:none}
 .big{font-size:23cqw;font-weight:900;line-height:1;direction:ltr;letter-spacing:-.02em}
 .big small{font-size:9cqw;color:#9aa3b2;font-weight:700;letter-spacing:0}
+.ptsl{margin:8px 0 10px;font-size:14px;font-weight:600;color:#9aa3b2;text-align:center}
 .tier{display:inline-block;margin-top:1.2cqw;font-size:6.2cqw;font-weight:800;padding:.4cqw 4.5cqw;border-radius:40px;color:#0f141c;white-space:nowrap}
 .legend{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 16px}
 .chip{background:#18202b;border-radius:10px;padding:6px 4px 5px;display:flex;flex-direction:column;align-items:center;gap:1px;border:2px solid transparent;opacity:.7;text-align:center}
@@ -110,6 +111,7 @@ h1{font-size:26px;font-weight:800;line-height:1.15}
 .q .qc{font-size:11px;font-weight:600;margin-inline-start:4px}
 .up{color:#6fdc9a}.dn{color:#ff8080}
 .note{margin:16px 0 6px;font-size:17px;font-weight:800;color:#6fdc9a;text-align:center;line-height:1.4}
+.tnote{margin-top:4px;font-size:13px;font-weight:600;color:#9aa3b2}
 .note.pending{color:#9aa3b2;font-weight:700;font-size:15px}
 .note.hit{background:#123222;border:2px solid #27ae60;border-radius:12px;padding:8px}
 .hist{background:#151c26;border-radius:12px;padding:8px 8px 4px;margin-top:6px}
