@@ -313,5 +313,9 @@ setInterval(() => { if (document.visibilityState === 'visible') load(); }, 5 * 6
   addEventListener('touchend', () => { if (y0 != null && dy > 80) load(); else ptr.style.transform = ''; y0 = null; });
 })();
 
-if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+if ('serviceWorker' in navigator) {
+  let reloaded = false; const hadCtrl = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadCtrl && !reloaded) { reloaded = true; location.reload(); } });
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((r) => r.update()).catch(() => {}));
+}
 load();
