@@ -97,6 +97,19 @@ h1{font-size:26px;font-weight:800;line-height:1.15}
 .tl{position:absolute;top:16px;font-size:11px;line-height:1;white-space:nowrap;color:#aeb6c4}
 .tl.full{left:0;color:#6fdc9a;font-weight:700}
 .spx .num{color:#4b5563}
+/* quarterly momentum heatmap */
+.qsec{margin-top:18px}
+.qscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:6px;border-radius:12px;background:#151c26}
+.qt{border-collapse:separate;border-spacing:3px;width:100%;min-width:470px;font-size:13px}
+.qt th{font-weight:700;color:#9aa3b2;font-size:11.5px;line-height:1.2;padding:5px 2px;text-align:center;vertical-align:bottom}
+.qt thead th{width:14%}
+.qt th.qn{position:sticky;right:0;z-index:1;background:#151c26;text-align:right;color:#eef2f7;font-size:12.5px;line-height:1.25;padding:4px 6px 4px 4px;white-space:normal;min-width:84px;max-width:96px}
+.qt .qtk{display:block;font-size:11px;font-weight:600;color:#8a94a6}
+.qt thead th.qn{z-index:2}
+.qc{text-align:center;font-weight:800;font-size:12.5px;padding:8px 3px;border-radius:7px;white-space:nowrap;color:#fff;direction:ltr;font-variant-numeric:tabular-nums}
+.qc.qz{background:#f2c94c;color:#0f141c}
+.qc.qf{background:#1c232e;color:#6b7280;font-weight:700}
+.qasof{font-size:11.5px;color:#7d8696;margin-top:5px}
 /* yields + info */
 .ys{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;border-top:2px solid #2a3442;padding-top:14px}
 .y{font-size:14px;font-weight:700;padding:8px 8px;border-radius:12px;background:#18202b;text-align:center;line-height:1.35}

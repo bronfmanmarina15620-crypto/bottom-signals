@@ -15,6 +15,9 @@ HY OAS (junk spread) and macro relief (10Y / dollar). Older history points (10-s
 - `scripts/update.py` — standard-library-only fetcher/scorer. Every source has its own try/except; on failure the last
   good value is kept with its own timestamp, otherwise the signal shows "אין נתון" and is left out of the score
   (the score is normalized over the signals that have data). Nothing is guessed.
+- `data/quarterly.json` — quarterly "index momentum heatmap" (NDX, SPX, INDU, RSP, IWM: YTD, Q1–Q4, last month of the
+  quarter; % close-to-close from Yahoo). Static: `scripts/update.py` recomputes it only when a new quarter has completed
+  (`as_of` ≠ last completed quarter), otherwise leaves it untouched. Manual: `python scripts/update.py --quarterly-only [--force]`.
 - `.github/workflows/update-data.yml` — cron: every 30 min 13:30–20:30 UTC Mon–Fri, 05:00 UTC and 21:20 UTC; also manual.
 
 ## Settings — `config.json`

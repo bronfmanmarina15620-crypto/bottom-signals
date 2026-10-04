@@ -257,6 +257,66 @@ def load_json(path, default):
     except Exception:
         return default
 
+# ------------------------------------------------------------------ quarterly momentum heatmap (data/quarterly.json)
+# Static table, recomputed ONLY when a new calendar quarter has completed (as_of != last completed quarter).
+# Values = % price change, close-to-close (Yahoo 'close', not dividend-adjusted):
+#   quarter = last close of the prior quarter -> last close of the quarter
+#   month   = last month of the as_of quarter (last close of the prior month -> last close of that month)
+#   ytd     = last close of the prior year -> last close of the as_of quarter
+# If any symbol fails or looks incomplete, the file is left untouched and the next run retries.
+Q_ROWS = [('NDX', '%5ENDX', 'נאסד״ק 100'), ('SPX', '%5EGSPC', 'S&P 500'), ('INDU', '%5EDJI', 'דאו ג׳ונס'),
+          ('RSP', 'RSP', 'S&P 500 שווה משקל'), ('IWM', 'IWM', 'ראסל 2000')]
+HE_MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר']
+
+def month_end(y, m):
+    return (datetime.date(y + (m == 12), m % 12 + 1, 1) - datetime.timedelta(days=1)) if m else datetime.date(y - 1, 12, 31)
+
+def last_completed_quarter(today=None):
+    today = today or datetime.datetime.now(NY).date()
+    q = (today.month - 1) // 3  # quarters fully completed this year (0..3)
+    return (today.year, q) if q else (today.year - 1, 4)
+
+def close_on_or_before(y, d, sym):
+    best = None
+    for dt, c in zip(y['dates'], y['c']):
+        if dt <= d: best = (dt, c)
+        else: break
+    if best is None: raise ValueError(f'{sym}: no close on/before {d}')
+    if (d - best[0]).days > 5: raise ValueError(f'{sym}: last close before {d} is {best[0]} (data gap)')
+    return best
+
+def update_quarterly(force=False):
+    path = os.path.join(DATA, 'quarterly.json')
+    year, q = last_completed_quarter()
+    label = f'Q{q} {year}'
+    old = load_json(path, {})
+    if not force and old.get('as_of') == label:
+        print(f'quarterly: up to date ({label}) - untouched'); return False
+    q_end = [month_end(year, 3 * i) for i in range(0, 5)]  # [prior-year end, Q1 end, Q2 end, Q3 end, Q4 end]
+    m = 3 * q
+    rows = []
+    for tid, sym, name in Q_ROWS:
+        y = yahoo(sym, '2y')
+        base = close_on_or_before(y, q_end[0], sym)
+        ends = [close_on_or_before(y, q_end[i], sym) for i in range(1, q + 1)]
+        prev_m = close_on_or_before(y, month_end(year, m - 1), sym)
+        pct = lambda a, b: round((b[1] / a[1] - 1) * 100, 4)
+        chain = [base] + ends
+        rows.append({'id': tid, 'symbol': sym.replace('%5E', '^'), 'name': name, 'label': f'{name} ({tid})',
+                     'ytd': pct(base, ends[-1]),
+                     'q': [pct(chain[i - 1], chain[i]) if i <= q else None for i in range(1, 5)],
+                     'month': pct(prev_m, ends[-1]),
+                     'closes': {'prior_year_end': [base[0].isoformat(), round(base[1], 4)],
+                                'quarter_ends': [[e[0].isoformat(), round(e[1], 4)] for e in ends],
+                                'prior_month_end': [prev_m[0].isoformat(), round(prev_m[1], 4)]}})
+    out = {'as_of': label, 'year': year, 'quarter': q, 'period_end': q_end[q].isoformat(),
+           'month': {'num': m, 'label': f'{HE_MONTHS[m - 1]} {year}'},
+           'method': 'close-to-close % price change (Yahoo Finance chart API, unadjusted for dividends)',
+           'generated_at': iso(now_utc()), 'rows': rows}
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(out, f, ensure_ascii=False, indent=1)
+    print(f'quarterly: recomputed -> {label}'); return True
+
 def main():
     os.makedirs(DATA, exist_ok=True)
     cfg = load_json(os.path.join(ROOT, 'config.json'), {})
@@ -319,6 +379,13 @@ def main():
         print(f'  {s["points"]:>3}  {s["id"]:<10} {s["display"]:<10} {s["status"]}')
     for y in yields + info:
         print(f'       {y["id"]:<10} {y.get("display")} {y.get("status")}')
+    try:
+        update_quarterly()
+    except Exception as e:  # never breaks the daily update; the old quarterly.json stays as is
+        log('[quarterly] FAILED (file left untouched):', repr(e)); traceback.print_exc(file=sys.stderr)
 
 if __name__ == '__main__':
-    main()
+    if '--quarterly-only' in sys.argv:
+        os.makedirs(DATA, exist_ok=True); update_quarterly(force='--force' in sys.argv)
+    else:
+        main()
