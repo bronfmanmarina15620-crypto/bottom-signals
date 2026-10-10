@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-09T23:22:59Z",
+ "generated_at": "2026-10-10T00:54:45Z",
  "market_time": "2026-10-09T21:15:59Z",
  "score": 0.0,
  "score_max": 10,
@@ -32,7 +32,7 @@
    "points": 0,
    "as_of": "2026-10-09T20:15:01Z",
    "status": "live",
-   "fetched_at": "2026-10-09T23:22:59Z",
+   "fetched_at": "2026-10-10T00:54:45Z",
    "bar_p": 0.1235,
    "bar_h": 0.6957,
    "color": "gray"
@@ -54,7 +54,7 @@
    "note": "VIX3M 17.8",
    "as_of": "2026-10-09T20:15:01Z",
    "status": "live",
-   "fetched_at": "2026-10-09T23:22:59Z",
+   "fetched_at": "2026-10-10T00:54:45Z",
    "bar_p": 0.1167,
    "bar_h": 0.6667,
    "color": "gray"
@@ -73,9 +73,9 @@
    "value": 45.0,
    "display": "45.0",
    "points": 0,
-   "as_of": "2026-10-09T23:05:40Z",
+   "as_of": "2026-10-09T23:59:54Z",
    "status": "live",
-   "fetched_at": "2026-10-09T23:22:59Z",
+   "fetched_at": "2026-10-10T00:54:45Z",
    "bar_p": 0.125,
    "bar_h": 0.625,
    "color": "gray"
@@ -98,7 +98,7 @@
    "date_only": true,
    "note": "172 מתוך 498 מניות",
    "status": "live",
-   "fetched_at": "2026-10-09T23:22:59Z",
+   "fetched_at": "2026-10-10T00:54:45Z",
    "bar_p": 0.3444,
    "bar_h": 0.7778,
    "color": "gray"
@@ -120,7 +120,7 @@
    "note": "שוורים 40.3% · פער +1.3%",
    "as_of": "2026-10-09T15:30:20Z",
    "status": "live",
-   "fetched_at": "2026-10-09T23:22:59Z",
+   "fetched_at": "2026-10-10T00:54:45Z",
    "bar_p": 0.36,
    "bar_h": 0.6,
    "color": "gray"
@@ -141,7 +141,7 @@
    "points": 0,
    "as_of": "2026-10-09T20:54:15Z",
    "status": "live",
-   "fetched_at": "2026-10-09T23:22:59Z",
+   "fetched_at": "2026-10-10T00:54:45Z",
    "bar_p": 0.385,
    "bar_h": 0.625,
    "color": "gray"
@@ -165,7 +165,7 @@
    "note": "שיא 7,819 (6.10.2026)",
    "as_of": "2026-10-09T21:29:56Z",
    "status": "live",
-   "fetched_at": "2026-10-09T23:22:59Z",
+   "fetched_at": "2026-10-10T00:54:45Z",
    "bar_p": 0.0045,
    "bar_h": 0.5,
    "color": "gray"
@@ -187,7 +187,7 @@
    "note": "ממוצע 200 יום: 7,251",
    "as_of": "2026-10-09T21:29:56Z",
    "status": "live",
-   "fetched_at": "2026-10-09T23:22:59Z",
+   "fetched_at": "2026-10-10T00:54:45Z",
    "bar_p": 0,
    "bar_h": 0.4167,
    "color": "gray"
@@ -201,7 +201,7 @@
    "display": "5.24%",
    "change": 0.25,
    "as_of": "2026-10-09T18:59:55Z",
-   "fetched_at": "2026-10-09T23:22:59Z",
+   "fetched_at": "2026-10-10T00:54:45Z",
    "status": "live",
    "line": 5.25,
    "warn": false
@@ -213,7 +213,7 @@
    "display": "5.60%",
    "change": -0.11,
    "as_of": "2026-10-09T18:59:55Z",
-   "fetched_at": "2026-10-09T23:22:59Z",
+   "fetched_at": "2026-10-10T00:54:45Z",
    "status": "live",
    "line": 5.5,
    "warn": true
@@ -227,7 +227,7 @@
    "display": "$104.43",
    "change": 0.14,
    "as_of": "2026-10-09T20:59:58Z",
-   "fetched_at": "2026-10-09T23:22:59Z",
+   "fetched_at": "2026-10-10T00:54:45Z",
    "status": "live"
   },
   {
@@ -237,7 +237,7 @@
    "display": "102.23",
    "change": 0.09,
    "as_of": "2026-10-09T20:59:59Z",
-   "fetched_at": "2026-10-09T23:22:59Z",
+   "fetched_at": "2026-10-10T00:54:45Z",
    "status": "live"
   },
   {
@@ -247,17 +247,17 @@
    "display": "30,883",
    "change": 0.51,
    "as_of": "2026-10-09T21:15:59Z",
-   "fetched_at": "2026-10-09T23:22:59Z",
+   "fetched_at": "2026-10-10T00:54:45Z",
    "status": "live"
   },
   {
    "id": "qqq",
    "label": "QQQ",
-   "value": 751.27,
-   "display": "$751.27",
-   "change": 0.49,
+   "value": 747.58,
+   "display": "$747.58",
+   "change": -1.34,
    "as_of": "2026-10-09T20:00:00Z",
-   "fetched_at": "2026-10-09T23:22:59Z",
+   "fetched_at": "2026-10-10T00:54:45Z",
    "status": "live"
   }
  ],
