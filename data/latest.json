@@ -1,13 +1,13 @@
 {
- "generated_at": "2026-10-27T21:10:05Z",
- "market_time": "2026-10-27T21:10:18Z",
- "score": 1.67,
+ "generated_at": "2026-10-27T23:14:30Z",
+ "market_time": "2026-10-27T21:15:59Z",
+ "score": 0.83,
  "score_max": 10,
  "score_method": "points earned / points available x 10",
- "score_core": 1.67,
- "score_with_spx": 1.25,
+ "score_core": 0.83,
+ "score_with_spx": 0.62,
  "count_spx_in_score": false,
- "points": 1.0,
+ "points": 0.5,
  "points_available": 6,
  "signals_count": 6,
  "score_spx": 0,
@@ -32,7 +32,7 @@
    "points": 0,
    "as_of": "2026-10-27T20:15:01Z",
    "status": "live",
-   "fetched_at": "2026-10-27T21:10:05Z",
+   "fetched_at": "2026-10-27T23:14:30Z",
    "bar_p": 0.24,
    "bar_h": 0.6957,
    "color": "gray"
@@ -54,7 +54,7 @@
    "note": "VIX3M 19.6",
    "as_of": "2026-10-27T20:15:01Z",
    "status": "live",
-   "fetched_at": "2026-10-27T21:10:05Z",
+   "fetched_at": "2026-10-27T23:14:30Z",
    "bar_p": 0.3167,
    "bar_h": 0.6667,
    "color": "gray"
@@ -70,13 +70,13 @@
    "full_display": "≤10",
    "source": "CNN Fear & Greed",
    "kind": "live",
-   "value": 32.7,
-   "display": "32.7",
+   "value": 33.6,
+   "display": "33.6",
    "points": 0,
-   "as_of": "2026-10-27T20:51:34Z",
+   "as_of": "2026-10-27T22:57:05Z",
    "status": "live",
-   "fetched_at": "2026-10-27T21:10:05Z",
-   "bar_p": 0.4325,
+   "fetched_at": "2026-10-27T23:14:30Z",
+   "bar_p": 0.41,
    "bar_h": 0.625,
    "color": "gray"
   },
@@ -89,16 +89,16 @@
    "direction": "down",
    "half_display": "≤15%",
    "full_display": "≤5%",
-   "source": "אחוז מניות S&P 500 מעל ממוצע 50 יום — חישוב עצמי מ־Yahoo ורשימת ויקיפדיה",
-   "kind": "computed",
-   "value": 60.2,
-   "display": "60%",
+   "source": "ChartRow — אחוז מניות S&P 500 מעל ממוצע 50 יום",
+   "kind": "live",
+   "value": 60.7,
+   "display": "61%",
    "points": 0,
-   "as_of": "2026-10-27T21:10:17Z",
-   "date_only": false,
-   "note": "מחושב · 302 מתוך 502 מניות",
-   "status": "computed",
-   "fetched_at": "2026-10-27T21:10:05Z",
+   "as_of": "2026-10-27T20:00:00Z",
+   "date_only": true,
+   "note": "303 מתוך 499 מניות",
+   "status": "live",
+   "fetched_at": "2026-10-27T23:14:30Z",
    "bar_p": 0,
    "bar_h": 0.7778,
    "color": "gray"
@@ -120,7 +120,7 @@
    "note": "שוורים 36.9% · פער −8.9%",
    "as_of": "2026-10-24T16:30:49Z",
    "status": "live",
-   "fetched_at": "2026-10-27T21:10:05Z",
+   "fetched_at": "2026-10-27T23:14:30Z",
    "bar_p": 0.632,
    "bar_h": 0.6,
    "color": "green"
@@ -136,15 +136,15 @@
    "full_display": "≤10",
    "source": "CNN Fear & Greed",
    "kind": "live",
-   "value": 24.4,
-   "display": "24",
-   "points": 0.5,
+   "value": 28.6,
+   "display": "29",
+   "points": 0,
    "as_of": "2026-10-27T20:14:59Z",
    "status": "live",
-   "fetched_at": "2026-10-27T21:10:05Z",
-   "bar_p": 0.64,
+   "fetched_at": "2026-10-27T23:14:30Z",
+   "bar_p": 0.535,
    "bar_h": 0.625,
-   "color": "green"
+   "color": "yellow"
   }
  ],
  "spx_signals": [
@@ -165,7 +165,7 @@
    "note": "שיא 7,819 (6.10.2026)",
    "as_of": "2026-10-27T20:48:15Z",
    "status": "live",
-   "fetched_at": "2026-10-27T21:10:05Z",
+   "fetched_at": "2026-10-27T23:14:30Z",
    "bar_p": 0.0615,
    "bar_h": 0.5,
    "color": "gray"
@@ -187,7 +187,7 @@
    "note": "ממוצע 200 יום: 7,299",
    "as_of": "2026-10-27T20:48:15Z",
    "status": "live",
-   "fetched_at": "2026-10-27T21:10:05Z",
+   "fetched_at": "2026-10-27T23:14:30Z",
    "bar_p": 0,
    "bar_h": 0.4167,
    "color": "gray"
@@ -201,7 +201,7 @@
    "display": "4.99%",
    "change": 0.14,
    "as_of": "2026-10-27T18:59:54Z",
-   "fetched_at": "2026-10-27T21:10:05Z",
+   "fetched_at": "2026-10-27T23:14:30Z",
    "status": "live",
    "line": 5.25,
    "warn": false
@@ -213,7 +213,7 @@
    "display": "5.30%",
    "change": 0.08,
    "as_of": "2026-10-27T18:59:54Z",
-   "fetched_at": "2026-10-27T21:10:05Z",
+   "fetched_at": "2026-10-27T23:14:30Z",
    "status": "live",
    "line": 5.5,
    "warn": false
@@ -223,21 +223,21 @@
   {
    "id": "brent",
    "label": "נפט ברנט",
-   "value": 109.74,
-   "display": "$109.74",
-   "change": -5.24,
-   "as_of": "2026-10-27T20:59:43Z",
-   "fetched_at": "2026-10-27T21:10:05Z",
+   "value": 109.5,
+   "display": "$109.50",
+   "change": -5.45,
+   "as_of": "2026-10-27T23:02:46Z",
+   "fetched_at": "2026-10-27T23:14:30Z",
    "status": "live"
   },
   {
    "id": "dxy",
    "label": "דולר DXY",
-   "value": 102.377,
-   "display": "102.38",
-   "change": 0.41,
-   "as_of": "2026-10-27T21:00:15Z",
-   "fetched_at": "2026-10-27T21:10:05Z",
+   "value": 102.365,
+   "display": "102.36",
+   "change": 0.4,
+   "as_of": "2026-10-27T22:04:59Z",
+   "fetched_at": "2026-10-27T23:14:30Z",
    "status": "live"
   },
   {
@@ -246,8 +246,8 @@
    "value": 29651.441,
    "display": "29,651",
    "change": 1.29,
-   "as_of": "2026-10-27T21:10:18Z",
-   "fetched_at": "2026-10-27T21:10:05Z",
+   "as_of": "2026-10-27T21:15:59Z",
+   "fetched_at": "2026-10-27T23:14:30Z",
    "status": "live"
   },
   {
@@ -257,13 +257,11 @@
    "display": "$721.25",
    "change": 1.27,
    "as_of": "2026-10-27T20:00:00Z",
-   "fetched_at": "2026-10-27T21:10:05Z",
+   "fetched_at": "2026-10-27T23:14:30Z",
    "status": "live"
   }
  ],
  "full_buy_threshold": 5.5,
  "full_buy_threshold_note": null,
- "log": [
-  "S5FI ChartRow failed -> computing: ValueError('ChartRow: pattern not found')"
- ]
+ "log": []
 }
