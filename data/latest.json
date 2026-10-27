@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-27T20:39:50Z",
- "market_time": "2026-10-27T20:39:59Z",
+ "generated_at": "2026-10-27T21:10:05Z",
+ "market_time": "2026-10-27T21:10:18Z",
  "score": 1.67,
  "score_max": 10,
  "score_method": "points earned / points available x 10",
@@ -32,7 +32,7 @@
    "points": 0,
    "as_of": "2026-10-27T20:15:01Z",
    "status": "live",
-   "fetched_at": "2026-10-27T20:39:50Z",
+   "fetched_at": "2026-10-27T21:10:05Z",
    "bar_p": 0.24,
    "bar_h": 0.6957,
    "color": "gray"
@@ -54,7 +54,7 @@
    "note": "VIX3M 19.6",
    "as_of": "2026-10-27T20:15:01Z",
    "status": "live",
-   "fetched_at": "2026-10-27T20:39:50Z",
+   "fetched_at": "2026-10-27T21:10:05Z",
    "bar_p": 0.3167,
    "bar_h": 0.6667,
    "color": "gray"
@@ -73,9 +73,9 @@
    "value": 32.7,
    "display": "32.7",
    "points": 0,
-   "as_of": "2026-10-27T20:21:33Z",
+   "as_of": "2026-10-27T20:51:34Z",
    "status": "live",
-   "fetched_at": "2026-10-27T20:39:50Z",
+   "fetched_at": "2026-10-27T21:10:05Z",
    "bar_p": 0.4325,
    "bar_h": 0.625,
    "color": "gray"
@@ -94,11 +94,11 @@
    "value": 60.2,
    "display": "60%",
    "points": 0,
-   "as_of": "2026-10-27T20:40:01Z",
+   "as_of": "2026-10-27T21:10:17Z",
    "date_only": false,
    "note": "מחושב · 302 מתוך 502 מניות",
    "status": "computed",
-   "fetched_at": "2026-10-27T20:39:50Z",
+   "fetched_at": "2026-10-27T21:10:05Z",
    "bar_p": 0,
    "bar_h": 0.7778,
    "color": "gray"
@@ -120,7 +120,7 @@
    "note": "שוורים 36.9% · פער −8.9%",
    "as_of": "2026-10-24T16:30:49Z",
    "status": "live",
-   "fetched_at": "2026-10-27T20:39:50Z",
+   "fetched_at": "2026-10-27T21:10:05Z",
    "bar_p": 0.632,
    "bar_h": 0.6,
    "color": "green"
@@ -141,7 +141,7 @@
    "points": 0.5,
    "as_of": "2026-10-27T20:14:59Z",
    "status": "live",
-   "fetched_at": "2026-10-27T20:39:50Z",
+   "fetched_at": "2026-10-27T21:10:05Z",
    "bar_p": 0.64,
    "bar_h": 0.625,
    "color": "green"
@@ -163,9 +163,9 @@
    "display": "1.23%",
    "points": 0,
    "note": "שיא 7,819 (6.10.2026)",
-   "as_of": "2026-10-27T20:20:01Z",
+   "as_of": "2026-10-27T20:48:15Z",
    "status": "live",
-   "fetched_at": "2026-10-27T20:39:50Z",
+   "fetched_at": "2026-10-27T21:10:05Z",
    "bar_p": 0.0615,
    "bar_h": 0.5,
    "color": "gray"
@@ -185,9 +185,9 @@
    "display": "+5.8%",
    "points": 0,
    "note": "ממוצע 200 יום: 7,299",
-   "as_of": "2026-10-27T20:20:01Z",
+   "as_of": "2026-10-27T20:48:15Z",
    "status": "live",
-   "fetched_at": "2026-10-27T20:39:50Z",
+   "fetched_at": "2026-10-27T21:10:05Z",
    "bar_p": 0,
    "bar_h": 0.4167,
    "color": "gray"
@@ -201,7 +201,7 @@
    "display": "4.99%",
    "change": 0.14,
    "as_of": "2026-10-27T18:59:54Z",
-   "fetched_at": "2026-10-27T20:39:50Z",
+   "fetched_at": "2026-10-27T21:10:05Z",
    "status": "live",
    "line": 5.25,
    "warn": false
@@ -213,7 +213,7 @@
    "display": "5.30%",
    "change": 0.08,
    "as_of": "2026-10-27T18:59:54Z",
-   "fetched_at": "2026-10-27T20:39:50Z",
+   "fetched_at": "2026-10-27T21:10:05Z",
    "status": "live",
    "line": 5.5,
    "warn": false
@@ -223,21 +223,21 @@
   {
    "id": "brent",
    "label": "נפט ברנט",
-   "value": 109.83,
-   "display": "$109.83",
-   "change": -5.16,
-   "as_of": "2026-10-27T20:29:28Z",
-   "fetched_at": "2026-10-27T20:39:50Z",
+   "value": 109.74,
+   "display": "$109.74",
+   "change": -5.24,
+   "as_of": "2026-10-27T20:59:43Z",
+   "fetched_at": "2026-10-27T21:10:05Z",
    "status": "live"
   },
   {
    "id": "dxy",
    "label": "דולר DXY",
-   "value": 102.347,
-   "display": "102.35",
-   "change": 0.38,
-   "as_of": "2026-10-27T20:30:00Z",
-   "fetched_at": "2026-10-27T20:39:50Z",
+   "value": 102.377,
+   "display": "102.38",
+   "change": 0.41,
+   "as_of": "2026-10-27T21:00:15Z",
+   "fetched_at": "2026-10-27T21:10:05Z",
    "status": "live"
   },
   {
@@ -246,8 +246,8 @@
    "value": 29651.441,
    "display": "29,651",
    "change": 1.29,
-   "as_of": "2026-10-27T20:39:59Z",
-   "fetched_at": "2026-10-27T20:39:50Z",
+   "as_of": "2026-10-27T21:10:18Z",
+   "fetched_at": "2026-10-27T21:10:05Z",
    "status": "live"
   },
   {
@@ -257,7 +257,7 @@
    "display": "$721.25",
    "change": 1.27,
    "as_of": "2026-10-27T20:00:00Z",
-   "fetched_at": "2026-10-27T20:39:50Z",
+   "fetched_at": "2026-10-27T21:10:05Z",
    "status": "live"
   }
  ],
