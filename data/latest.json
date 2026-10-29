@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-28T23:35:51Z",
+ "generated_at": "2026-10-29T01:04:14Z",
  "market_time": "2026-10-28T21:15:59Z",
  "score": 0.83,
  "score_max": 10,
@@ -32,7 +32,7 @@
    "points": 0,
    "as_of": "2026-10-28T20:15:01Z",
    "status": "live",
-   "fetched_at": "2026-10-28T23:35:51Z",
+   "fetched_at": "2026-10-29T01:04:14Z",
    "bar_p": 0.2135,
    "bar_h": 0.6957,
    "color": "gray"
@@ -54,7 +54,7 @@
    "note": "VIX3M 19.2",
    "as_of": "2026-10-28T20:15:01Z",
    "status": "live",
-   "fetched_at": "2026-10-28T23:35:51Z",
+   "fetched_at": "2026-10-29T01:04:14Z",
    "bar_p": 0.2667,
    "bar_h": 0.6667,
    "color": "gray"
@@ -73,9 +73,9 @@
    "value": 35.9,
    "display": "35.9",
    "points": 0,
-   "as_of": "2026-10-28T23:16:12Z",
+   "as_of": "2026-10-28T23:59:59Z",
    "status": "live",
-   "fetched_at": "2026-10-28T23:35:51Z",
+   "fetched_at": "2026-10-29T01:04:14Z",
    "bar_p": 0.3525,
    "bar_h": 0.625,
    "color": "gray"
@@ -98,7 +98,7 @@
    "date_only": true,
    "note": "294 מתוך 499 מניות",
    "status": "live",
-   "fetched_at": "2026-10-28T23:35:51Z",
+   "fetched_at": "2026-10-29T01:04:14Z",
    "bar_p": 0,
    "bar_h": 0.7778,
    "color": "gray"
@@ -120,7 +120,7 @@
    "note": "שוורים 36.9% · פער −8.9%",
    "as_of": "2026-10-24T16:30:49Z",
    "status": "live",
-   "fetched_at": "2026-10-28T23:35:51Z",
+   "fetched_at": "2026-10-29T01:04:14Z",
    "bar_p": 0.632,
    "bar_h": 0.6,
    "color": "green"
@@ -141,7 +141,7 @@
    "points": 0,
    "as_of": "2026-10-28T20:14:59Z",
    "status": "live",
-   "fetched_at": "2026-10-28T23:35:51Z",
+   "fetched_at": "2026-10-29T01:04:14Z",
    "bar_p": 0.585,
    "bar_h": 0.625,
    "color": "yellow"
@@ -165,7 +165,7 @@
    "note": "שיא 7,819 (6.10.2026)",
    "as_of": "2026-10-28T21:18:42Z",
    "status": "live",
-   "fetched_at": "2026-10-28T23:35:51Z",
+   "fetched_at": "2026-10-29T01:04:14Z",
    "bar_p": 0.048,
    "bar_h": 0.5,
    "color": "gray"
@@ -187,7 +187,7 @@
    "note": "ממוצע 200 יום: 7,303",
    "as_of": "2026-10-28T21:18:42Z",
    "status": "live",
-   "fetched_at": "2026-10-28T23:35:51Z",
+   "fetched_at": "2026-10-29T01:04:14Z",
    "bar_p": 0,
    "bar_h": 0.4167,
    "color": "gray"
@@ -201,7 +201,7 @@
    "display": "5.05%",
    "change": 1.04,
    "as_of": "2026-10-28T18:59:55Z",
-   "fetched_at": "2026-10-28T23:35:51Z",
+   "fetched_at": "2026-10-29T01:04:14Z",
    "status": "live",
    "line": 5.25,
    "warn": false
@@ -213,7 +213,7 @@
    "display": "5.36%",
    "change": 1.06,
    "as_of": "2026-10-28T18:59:55Z",
-   "fetched_at": "2026-10-28T23:35:51Z",
+   "fetched_at": "2026-10-29T01:04:14Z",
    "status": "live",
    "line": 5.5,
    "warn": false
@@ -223,21 +223,21 @@
   {
    "id": "brent",
    "label": "נפט ברנט",
-   "value": 110.59,
-   "display": "$110.59",
-   "change": -2.89,
-   "as_of": "2026-10-28T23:22:14Z",
-   "fetched_at": "2026-10-28T23:35:51Z",
+   "value": 110.7,
+   "display": "$110.70",
+   "change": -2.79,
+   "as_of": "2026-10-29T00:53:54Z",
+   "fetched_at": "2026-10-29T01:04:14Z",
    "status": "live"
   },
   {
    "id": "dxy",
    "label": "דולר DXY",
-   "value": 102.155,
-   "display": "102.15",
-   "change": -0.16,
-   "as_of": "2026-10-28T22:04:58Z",
-   "fetched_at": "2026-10-28T23:35:51Z",
+   "value": 102.235,
+   "display": "102.24",
+   "change": -0.08,
+   "as_of": "2026-10-29T00:54:13Z",
+   "fetched_at": "2026-10-29T01:04:14Z",
    "status": "live"
   },
   {
@@ -247,17 +247,17 @@
    "display": "29,813",
    "change": 0.55,
    "as_of": "2026-10-28T21:15:59Z",
-   "fetched_at": "2026-10-28T23:35:51Z",
+   "fetched_at": "2026-10-29T01:04:14Z",
    "status": "live"
   },
   {
    "id": "qqq",
    "label": "QQQ",
-   "value": 725.61,
-   "display": "$725.61",
-   "change": 0.6,
+   "value": 721.25,
+   "display": "$721.25",
+   "change": 1.27,
    "as_of": "2026-10-28T20:00:00Z",
-   "fetched_at": "2026-10-28T23:35:51Z",
+   "fetched_at": "2026-10-29T01:04:14Z",
    "status": "live"
   }
  ],
