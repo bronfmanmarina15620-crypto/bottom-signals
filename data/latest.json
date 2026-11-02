@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-02T22:16:26Z",
- "market_time": "2026-11-02T22:16:01Z",
+ "generated_at": "2026-11-02T22:47:11Z",
+ "market_time": "2026-11-02T22:15:59Z",
  "score": 1.67,
  "score_max": 10,
  "score_method": "points earned / points available x 10",
@@ -32,7 +32,7 @@
    "points": 0,
    "as_of": "2026-11-02T21:15:01Z",
    "status": "live",
-   "fetched_at": "2026-11-02T22:16:26Z",
+   "fetched_at": "2026-11-02T22:47:11Z",
    "bar_p": 0.3978,
    "bar_h": 0.6957,
    "color": "gray"
@@ -54,7 +54,7 @@
    "note": "VIX3M 21.6",
    "as_of": "2026-11-02T21:15:01Z",
    "status": "live",
-   "fetched_at": "2026-11-02T22:16:26Z",
+   "fetched_at": "2026-11-02T22:47:11Z",
    "bar_p": 0.5967,
    "bar_h": 0.6667,
    "color": "yellow"
@@ -73,9 +73,9 @@
    "value": 22.7,
    "display": "22.7",
    "points": 0.5,
-   "as_of": "2026-11-02T21:58:56Z",
+   "as_of": "2026-11-02T22:29:04Z",
    "status": "live",
-   "fetched_at": "2026-11-02T22:16:26Z",
+   "fetched_at": "2026-11-02T22:47:11Z",
    "bar_p": 0.6825,
    "bar_h": 0.625,
    "color": "green"
@@ -94,11 +94,11 @@
    "value": 66.7,
    "display": "67%",
    "points": 0,
-   "as_of": "2026-11-02T22:16:33Z",
+   "as_of": "2026-11-02T22:47:19Z",
    "date_only": false,
    "note": "מחושב · 335 מתוך 502 מניות",
    "status": "computed",
-   "fetched_at": "2026-11-02T22:16:26Z",
+   "fetched_at": "2026-11-02T22:47:11Z",
    "bar_p": 0,
    "bar_h": 0.7778,
    "color": "gray"
@@ -120,7 +120,7 @@
    "note": "שוורים 37.8% · פער −3.6%",
    "as_of": "2026-10-31T15:31:04Z",
    "status": "live",
-   "fetched_at": "2026-11-02T22:16:26Z",
+   "fetched_at": "2026-11-02T22:47:11Z",
    "bar_p": 0.456,
    "bar_h": 0.6,
    "color": "gray"
@@ -139,9 +139,9 @@
    "value": 20.4,
    "display": "20",
    "points": 0.5,
-   "as_of": "2026-11-02T21:49:02Z",
+   "as_of": "2026-11-02T22:23:51Z",
    "status": "live",
-   "fetched_at": "2026-11-02T22:16:26Z",
+   "fetched_at": "2026-11-02T22:47:11Z",
    "bar_p": 0.74,
    "bar_h": 0.625,
    "color": "green"
@@ -165,7 +165,7 @@
    "note": "שיא 7,819 (6.10.2026)",
    "as_of": "2026-11-02T21:50:59Z",
    "status": "live",
-   "fetched_at": "2026-11-02T22:16:26Z",
+   "fetched_at": "2026-11-02T22:47:11Z",
    "bar_p": 0.1775,
    "bar_h": 0.5,
    "color": "gray"
@@ -187,7 +187,7 @@
    "note": "ממוצע 200 יום: 7,313",
    "as_of": "2026-11-02T21:50:59Z",
    "status": "live",
-   "fetched_at": "2026-11-02T22:16:26Z",
+   "fetched_at": "2026-11-02T22:47:11Z",
    "bar_p": 0,
    "bar_h": 0.4167,
    "color": "gray"
@@ -201,7 +201,7 @@
    "display": "4.89%",
    "change": -0.71,
    "as_of": "2026-11-02T19:59:51Z",
-   "fetched_at": "2026-11-02T22:16:26Z",
+   "fetched_at": "2026-11-02T22:47:11Z",
    "status": "live",
    "line": 5.25,
    "warn": false
@@ -213,7 +213,7 @@
    "display": "5.27%",
    "change": -0.75,
    "as_of": "2026-11-02T19:59:51Z",
-   "fetched_at": "2026-11-02T22:16:26Z",
+   "fetched_at": "2026-11-02T22:47:11Z",
    "status": "live",
    "line": 5.5,
    "warn": false
@@ -227,17 +227,17 @@
    "display": "$104.23",
    "change": -11.4,
    "as_of": "2026-11-02T21:59:30Z",
-   "fetched_at": "2026-11-02T22:16:26Z",
+   "fetched_at": "2026-11-02T22:47:11Z",
    "status": "live"
   },
   {
    "id": "dxy",
    "label": "דולר DXY",
-   "value": 101.779,
-   "display": "101.78",
-   "change": -0.1,
-   "as_of": "2026-11-02T22:06:33Z",
-   "fetched_at": "2026-11-02T22:16:26Z",
+   "value": 101.785,
+   "display": "101.79",
+   "change": -0.09,
+   "as_of": "2026-11-02T22:37:18Z",
+   "fetched_at": "2026-11-02T22:47:11Z",
    "status": "live"
   },
   {
@@ -246,8 +246,8 @@
    "value": 27989.82,
    "display": "27,990",
    "change": -1.39,
-   "as_of": "2026-11-02T22:16:01Z",
-   "fetched_at": "2026-11-02T22:16:26Z",
+   "as_of": "2026-11-02T22:15:59Z",
+   "fetched_at": "2026-11-02T22:47:11Z",
    "status": "live"
   },
   {
@@ -257,7 +257,7 @@
    "display": "$681.09",
    "change": -1.36,
    "as_of": "2026-11-02T21:00:00Z",
-   "fetched_at": "2026-11-02T22:16:26Z",
+   "fetched_at": "2026-11-02T22:47:11Z",
    "status": "live"
   }
  ],
