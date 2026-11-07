@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-07T00:23:26Z",
+ "generated_at": "2026-11-07T00:59:05Z",
  "market_time": "2026-11-06T22:15:59Z",
  "score": 3.33,
  "score_max": 10,
@@ -32,7 +32,7 @@
    "points": 0,
    "as_of": "2026-11-06T21:15:01Z",
    "status": "live",
-   "fetched_at": "2026-11-07T00:23:26Z",
+   "fetched_at": "2026-11-07T00:59:05Z",
    "bar_p": 0.593,
    "bar_h": 0.6957,
    "color": "yellow"
@@ -54,7 +54,7 @@
    "note": "VIX3M 24.6",
    "as_of": "2026-11-06T21:15:01Z",
    "status": "live",
-   "fetched_at": "2026-11-07T00:23:26Z",
+   "fetched_at": "2026-11-07T00:59:05Z",
    "bar_p": 0.8067,
    "bar_h": 0.6667,
    "color": "green"
@@ -75,7 +75,7 @@
    "points": 0.5,
    "as_of": "2026-11-06T23:59:54Z",
    "status": "live",
-   "fetched_at": "2026-11-07T00:23:26Z",
+   "fetched_at": "2026-11-07T00:59:05Z",
    "bar_p": 0.6975,
    "bar_h": 0.625,
    "color": "green"
@@ -98,7 +98,7 @@
    "date_only": true,
    "note": "306 מתוך 499 מניות",
    "status": "live",
-   "fetched_at": "2026-11-07T00:23:26Z",
+   "fetched_at": "2026-11-07T00:59:05Z",
    "bar_p": 0,
    "bar_h": 0.7778,
    "color": "gray"
@@ -120,7 +120,7 @@
    "note": "שוורים 34.1% · פער −14.3%",
    "as_of": "2026-11-06T15:30:51Z",
    "status": "live",
-   "fetched_at": "2026-11-07T00:23:26Z",
+   "fetched_at": "2026-11-07T00:59:05Z",
    "bar_p": 0.736,
    "bar_h": 0.6,
    "color": "green"
@@ -141,7 +141,7 @@
    "points": 0.5,
    "as_of": "2026-11-06T21:53:12Z",
    "status": "live",
-   "fetched_at": "2026-11-07T00:23:26Z",
+   "fetched_at": "2026-11-07T00:59:05Z",
    "bar_p": 0.915,
    "bar_h": 0.625,
    "color": "green"
@@ -165,7 +165,7 @@
    "note": "שיא 7,819 (6.10.2026)",
    "as_of": "2026-11-06T21:37:09Z",
    "status": "live",
-   "fetched_at": "2026-11-07T00:23:26Z",
+   "fetched_at": "2026-11-07T00:59:05Z",
    "bar_p": 0.2825,
    "bar_h": 0.5,
    "color": "gray"
@@ -187,7 +187,7 @@
    "note": "ממוצע 200 יום: 7,325",
    "as_of": "2026-11-06T21:37:09Z",
    "status": "live",
-   "fetched_at": "2026-11-07T00:23:26Z",
+   "fetched_at": "2026-11-07T00:59:05Z",
    "bar_p": 0,
    "bar_h": 0.4167,
    "color": "gray"
@@ -201,7 +201,7 @@
    "display": "4.86%",
    "change": 0.45,
    "as_of": "2026-11-06T19:59:56Z",
-   "fetched_at": "2026-11-07T00:23:26Z",
+   "fetched_at": "2026-11-07T00:59:05Z",
    "status": "live",
    "line": 5.25,
    "warn": false
@@ -213,7 +213,7 @@
    "display": "5.26%",
    "change": 0.17,
    "as_of": "2026-11-06T19:59:56Z",
-   "fetched_at": "2026-11-07T00:23:26Z",
+   "fetched_at": "2026-11-07T00:59:05Z",
    "status": "live",
    "line": 5.5,
    "warn": false
@@ -227,7 +227,7 @@
    "display": "$97.76",
    "change": -0.54,
    "as_of": "2026-11-06T21:59:44Z",
-   "fetched_at": "2026-11-07T00:23:26Z",
+   "fetched_at": "2026-11-07T00:59:05Z",
    "status": "live"
   },
   {
@@ -237,7 +237,7 @@
    "display": "102.28",
    "change": 0.72,
    "as_of": "2026-11-06T21:59:59Z",
-   "fetched_at": "2026-11-07T00:23:26Z",
+   "fetched_at": "2026-11-07T00:59:05Z",
    "status": "live"
   },
   {
@@ -247,7 +247,7 @@
    "display": "26,990",
    "change": 1.35,
    "as_of": "2026-11-06T22:15:59Z",
-   "fetched_at": "2026-11-07T00:23:26Z",
+   "fetched_at": "2026-11-07T00:59:05Z",
    "status": "live"
   },
   {
@@ -257,7 +257,7 @@
    "display": "$656.10",
    "change": 1.4,
    "as_of": "2026-11-06T21:00:00Z",
-   "fetched_at": "2026-11-07T00:23:26Z",
+   "fetched_at": "2026-11-07T00:59:05Z",
    "status": "live"
   }
  ],
