@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-11T21:38:50Z",
- "market_time": "2026-11-11T21:38:57Z",
+ "generated_at": "2026-11-12T02:19:23Z",
+ "market_time": "2026-11-11T22:15:59Z",
  "score": 1.67,
  "score_max": 10,
  "score_method": "points earned / points available x 10",
@@ -32,7 +32,7 @@
    "points": 0,
    "as_of": "2026-11-11T21:15:01Z",
    "status": "live",
-   "fetched_at": "2026-11-11T21:38:50Z",
+   "fetched_at": "2026-11-12T02:19:23Z",
    "bar_p": 0.2387,
    "bar_h": 0.6957,
    "color": "gray"
@@ -54,7 +54,7 @@
    "note": "VIX3M 19.2",
    "as_of": "2026-11-11T21:15:01Z",
    "status": "live",
-   "fetched_at": "2026-11-11T21:38:50Z",
+   "fetched_at": "2026-11-12T02:19:23Z",
    "bar_p": 0.3633,
    "bar_h": 0.6667,
    "color": "gray"
@@ -73,9 +73,9 @@
    "value": 37.0,
    "display": "37.0",
    "points": 0,
-   "as_of": "2026-11-11T21:20:58Z",
+   "as_of": "2026-11-11T23:59:59Z",
    "status": "live",
-   "fetched_at": "2026-11-11T21:38:50Z",
+   "fetched_at": "2026-11-12T02:19:23Z",
    "bar_p": 0.325,
    "bar_h": 0.625,
    "color": "gray"
@@ -89,16 +89,16 @@
    "direction": "down",
    "half_display": "≤15%",
    "full_display": "≤5%",
-   "source": "אחוז מניות S&P 500 מעל ממוצע 50 יום — חישוב עצמי מ־Yahoo ורשימת ויקיפדיה",
-   "kind": "computed",
-   "value": 71.7,
+   "source": "ChartRow — אחוז מניות S&P 500 מעל ממוצע 50 יום",
+   "kind": "live",
+   "value": 71.9,
    "display": "72%",
    "points": 0,
-   "as_of": "2026-11-11T21:38:59Z",
-   "date_only": false,
-   "note": "מחושב · 360 מתוך 502 מניות",
-   "status": "computed",
-   "fetched_at": "2026-11-11T21:38:50Z",
+   "as_of": "2026-11-11T21:00:00Z",
+   "date_only": true,
+   "note": "359 מתוך 499 מניות",
+   "status": "live",
+   "fetched_at": "2026-11-12T02:19:23Z",
    "bar_p": 0,
    "bar_h": 0.7778,
    "color": "gray"
@@ -120,7 +120,7 @@
    "note": "שוורים 34.1% · פער −14.3%",
    "as_of": "2026-11-07T15:30:37Z",
    "status": "live",
-   "fetched_at": "2026-11-11T21:38:50Z",
+   "fetched_at": "2026-11-12T02:19:23Z",
    "bar_p": 0.736,
    "bar_h": 0.6,
    "color": "green"
@@ -139,9 +139,9 @@
    "value": 19.4,
    "display": "19",
    "points": 0.5,
-   "as_of": "2026-11-11T21:14:59Z",
+   "as_of": "2026-11-11T22:08:29Z",
    "status": "live",
-   "fetched_at": "2026-11-11T21:38:50Z",
+   "fetched_at": "2026-11-12T02:19:23Z",
    "bar_p": 0.765,
    "bar_h": 0.625,
    "color": "green"
@@ -163,9 +163,9 @@
    "display": "2.55%",
    "points": 0,
    "note": "שיא 7,819 (6.10.2026)",
-   "as_of": "2026-11-11T21:20:01Z",
+   "as_of": "2026-11-11T21:42:03Z",
    "status": "live",
-   "fetched_at": "2026-11-11T21:38:50Z",
+   "fetched_at": "2026-11-12T02:19:23Z",
    "bar_p": 0.1275,
    "bar_h": 0.5,
    "color": "gray"
@@ -185,9 +185,9 @@
    "display": "+3.9%",
    "points": 0,
    "note": "ממוצע 200 יום: 7,334",
-   "as_of": "2026-11-11T21:20:01Z",
+   "as_of": "2026-11-11T21:42:03Z",
    "status": "live",
-   "fetched_at": "2026-11-11T21:38:50Z",
+   "fetched_at": "2026-11-12T02:19:23Z",
    "bar_p": 0,
    "bar_h": 0.4167,
    "color": "gray"
@@ -201,7 +201,7 @@
    "display": "5.00%",
    "change": 0.3,
    "as_of": "2026-11-11T19:59:54Z",
-   "fetched_at": "2026-11-11T21:38:50Z",
+   "fetched_at": "2026-11-12T02:19:23Z",
    "status": "live",
    "line": 5.25,
    "warn": false
@@ -213,7 +213,7 @@
    "display": "5.36%",
    "change": 0.11,
    "as_of": "2026-11-11T19:59:54Z",
-   "fetched_at": "2026-11-11T21:38:50Z",
+   "fetched_at": "2026-11-12T02:19:23Z",
    "status": "live",
    "line": 5.5,
    "warn": false
@@ -223,21 +223,21 @@
   {
    "id": "brent",
    "label": "נפט ברנט",
-   "value": 92.55,
-   "display": "$92.55",
-   "change": 1.16,
-   "as_of": "2026-11-11T21:28:03Z",
-   "fetched_at": "2026-11-11T21:38:50Z",
+   "value": 91.99,
+   "display": "$91.99",
+   "change": 0.55,
+   "as_of": "2026-11-12T02:06:52Z",
+   "fetched_at": "2026-11-12T02:19:23Z",
    "status": "live"
   },
   {
    "id": "dxy",
    "label": "דולר DXY",
-   "value": 102.93,
-   "display": "102.93",
-   "change": 0.68,
-   "as_of": "2026-11-11T21:28:54Z",
-   "fetched_at": "2026-11-11T21:38:50Z",
+   "value": 102.858,
+   "display": "102.86",
+   "change": 0.61,
+   "as_of": "2026-11-12T02:09:23Z",
+   "fetched_at": "2026-11-12T02:19:23Z",
    "status": "live"
   },
   {
@@ -246,24 +246,22 @@
    "value": 28374.252,
    "display": "28,374",
    "change": 2.28,
-   "as_of": "2026-11-11T21:38:57Z",
-   "fetched_at": "2026-11-11T21:38:50Z",
+   "as_of": "2026-11-11T22:15:59Z",
+   "fetched_at": "2026-11-12T02:19:23Z",
    "status": "live"
   },
   {
    "id": "qqq",
    "label": "QQQ",
-   "value": 690.38,
-   "display": "$690.38",
-   "change": 2.31,
+   "value": 674.76,
+   "display": "$674.76",
+   "change": -0.68,
    "as_of": "2026-11-11T21:00:00Z",
-   "fetched_at": "2026-11-11T21:38:50Z",
+   "fetched_at": "2026-11-12T02:19:23Z",
    "status": "live"
   }
  ],
  "full_buy_threshold": 5.5,
  "full_buy_threshold_note": null,
- "log": [
-  "S5FI ChartRow failed -> computing: ValueError('ChartRow: pattern not found')"
- ]
+ "log": []
 }
