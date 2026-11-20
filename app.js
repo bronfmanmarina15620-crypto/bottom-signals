@@ -312,7 +312,9 @@ function renderQuarterly(q) {
   const body = '<tbody>' + rows.map((r) => `<tr><th class="qn" aria-label="${esc(r.label)}">${bidi(r.name || r.label)}${r.id ? ` <span class="qtk"><bdi dir="ltr">(${esc(r.id)})</bdi></span>` : ''}</th>` +
     cols.map(([, , g], i) => qCell(g(r), maxes[i])).join('') + '</tr>').join('') + '</tbody>';
   $('qtable').innerHTML = head + body;
-  $('qasof').innerHTML = `מעודכן לסוף ${bidi((q.month && q.month.label) || '')} · מתעדכן אחרי כל חודש שמסתיים`;
+  $('qasof').innerHTML = q.live
+    ? `מעודכן חי: <b>${bidi(q.live_as_of ? fmtIL(q.live_as_of) : '')}</b> (שעון ישראל) · "מתחילת השנה", הרבעון הנוכחי והחודש הנוכחי מחושבים מהמחיר העדכני; רבעונים שהסתיימו קבועים`
+    : `מעודכן לסוף ${bidi((q.month && q.month.label) || '')} · מתעדכן אחרי כל חודש שמסתיים`;
   sec.hidden = false;
 }
 
@@ -321,7 +323,8 @@ function renderQuarterly(q) {
 // On every load/refresh the file values (data/latest.json, written by the GitHub Action) are overlaid with the freshest
 // public quotes, then points/score/tier are recomputed with the SAME rules as scripts/update.py. A value is replaced
 // only if the live one is newer than the file one; any failure silently keeps the file value.
-const CNBC_SYM = { vix: '.VIX', vix3m: '.VIX3M', spx: '.SPX', y10: 'US10Y', y30: 'US30Y', brent: '@LCO.1', dxy: '.DXY', ndx: '.NDX', qqq: 'QQQ' };
+const CNBC_SYM = { vix: '.VIX', vix3m: '.VIX3M', spx: '.SPX', y10: 'US10Y', y30: 'US30Y', brent: '@LCO.1', dxy: '.DXY', ndx: '.NDX', qqq: 'QQQ',
+  q_dji: '.DJI', q_rsp: 'RSP', q_iwm: 'IWM' };
 const CNBC_URL = 'https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=' +
   Object.values(CNBC_SYM).map(encodeURIComponent).join('%7C') + '&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1';
 const CNN_URL = 'https://production.dataviz.cnn.io/index/fearandgreed/graphdata';
@@ -430,6 +433,20 @@ function applyLive(d, q, cnn) {
   if (used.size) d.live_info = { sources: [...used], newest };
   return d;
 }
+// quarterly table: ytd / current quarter / current month = stored base close -> live CNBC price (same formula as update.py)
+function applyQLive(qd, q) {
+  if (!qd || !qd.live || !Array.isArray(qd.rows)) return false;
+  const pct = (a, b) => Math.round((b / a - 1) * 1e6) / 1e4;
+  let any = false;
+  for (const r of qd.rows) {
+    const lq = q[r.cnbc]; if (!lq || !r.bases || !newer(lq.ms, r.live_as_of)) continue;
+    if (nyDate(lq.ms).slice(0, 7) !== qd.base_key) continue; // new month: wait for the server to refresh the base closes
+    r.ytd = pct(r.bases.ytd[1], lq.last); r.q[qd.quarter - 1] = pct(r.bases.q[1], lq.last); r.month = pct(r.bases.m[1], lq.last);
+    r.live_as_of = new Date(lq.ms).toISOString(); any = true;
+    if (!qd.live_as_of || lq.ms > Date.parse(qd.live_as_of)) qd.live_as_of = r.live_as_of;
+  }
+  return any;
+}
 async function fetchLive() {
   const [q, cnn] = await Promise.all([fetchTO(CNBC_URL, 8000).then(parseCNBC).catch(() => ({})), fetchTO(CNN_URL, 8000).catch(() => null)]);
   return { q, cnn };
@@ -453,6 +470,7 @@ async function load() {
       const lv = await fetchLive();
       applyLive(d, lv.q, lv.cnn);
       if (d.live_info) render(d, cfg || {}, hist, stats);
+      try { if (applyQLive(qd, lv.q)) renderQuarterly(qd); } catch (e) { console.error(e); }
     } catch (e) { console.error(e); }
   } catch (e) {
     $('alerts').innerHTML = `<div class="alert err">לא הצלחתי לטעון את הנתונים. בדקי חיבור ונסי לרענן.</div>`;

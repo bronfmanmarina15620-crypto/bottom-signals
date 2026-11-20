@@ -51,3 +51,8 @@ Not investment advice.
 Each of the 5 counted signals scores clamp((value-base)/(full-base),0,1); half/full thresholds unchanged (half = reference mark,
 `step` field keeps the 0/0.5/1 crossing state for pills/colors). S5FI half threshold moved 15% -> 20%. Score = sum/available x10, one
 decimal. history.json was recomputed with graded points from each day's latest.json snapshot in git (v=8, `recomputed: graded-no-aaii`, per-signal `g`).
+
+## Live quarterly table + same-day history (20.11.2026)
+quarterly.json: completed quarters fixed; ytd, current quarter and current month = stored base close -> live price (CNBC, Yahoo fallback),
+recomputed every Action run and on every refresh in the app. history.json: one point per NY trading day from runs at/after 09:30 NY
+(pre-market runs no longer overwrite the previous day); past days recomputed from the last same-day snapshot in git.

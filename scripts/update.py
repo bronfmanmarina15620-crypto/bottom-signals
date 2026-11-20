@@ -166,7 +166,8 @@ def f_200(sym):
 CNBC_URL = ('https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols={}'
             '&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1')
 CNBC_SYM = {'vix': '.VIX', 'vix3m': '.VIX3M', 'spx': '.SPX', 'y10': 'US10Y', 'y30': 'US30Y',
-            'brent': '@LCO.1', 'dxy': '.DXY', 'ndx': '.NDX', 'qqq': 'QQQ'}
+            'brent': '@LCO.1', 'dxy': '.DXY', 'ndx': '.NDX', 'qqq': 'QQQ',
+            'q_dji': '.DJI', 'q_rsp': 'RSP', 'q_iwm': 'IWM'}
 _CNBC = {}
 def _num(x): return float(str(x).replace(',', '').replace('%', '').strip())
 def cnbc(key):
@@ -338,22 +339,20 @@ def load_json(path, default):
         return default
 
 # ------------------------------------------------------------------ quarterly momentum heatmap (data/quarterly.json)
-# Static table, recomputed ONLY when a new calendar quarter has completed (as_of != last completed quarter).
-# Values = % price change, close-to-close (Yahoo 'close', not dividend-adjusted):
-#   quarter = last close of the prior quarter -> last close of the quarter
-#   month   = last month of the as_of quarter (last close of the prior month -> last close of that month)
-#   ytd     = last close of the prior year -> last close of the as_of quarter
-# If any symbol fails or looks incomplete, the file is left untouched and the next run retries.
-Q_ROWS = [('NDX', '%5ENDX', 'נאסד״ק 100'), ('SPX', '%5EGSPC', 'S&P 500'), ('INDU', '%5EDJI', 'דאו ג׳ונס'),
-          ('RSP', 'RSP', 'S&P 500 שווה משקל'), ('IWM', 'IWM', 'ראסל 2000')]
+# Completed quarters of the current year are FIXED (close-to-close, Yahoo 'close', not dividend-adjusted).
+# The year-to-date column, the current quarter ("to date") and the current month ("to date") are LIVE:
+# recomputed on every run from the latest price (CNBC first, Yahoo fallback) against stored base closes:
+#   ytd   = last close of the prior year      -> live price
+#   q[cq] = last close of the prior quarter   -> live price
+#   month = last close of the prior month     -> live price
+# The app overlays the same CNBC quotes on refresh and recomputes these three columns with the same formula.
+# Base closes are refreshed only when the calendar month changes; if a symbol fails, the old file is kept.
+Q_ROWS = [('NDX', '%5ENDX', 'נאסד״ק 100', 'ndx'), ('SPX', '%5EGSPC', 'S&P 500', 'spx'), ('INDU', '%5EDJI', 'דאו ג׳ונס', 'q_dji'),
+          ('RSP', 'RSP', 'S&P 500 שווה משקל', 'q_rsp'), ('IWM', 'IWM', 'ראסל 2000', 'q_iwm')]
 HE_MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר']
 
 def month_end(y, m):
     return (datetime.date(y + (m == 12), m % 12 + 1, 1) - datetime.timedelta(days=1)) if m else datetime.date(y - 1, 12, 31)
-
-def last_completed_month(today=None):
-    today = today or datetime.datetime.now(NY).date()
-    return (today.year, today.month - 1) if today.month > 1 else (today.year - 1, 12)
 
 def close_on_or_before(y, d, sym):
     best = None
@@ -364,41 +363,54 @@ def close_on_or_before(y, d, sym):
     if (d - best[0]).days > 5: raise ValueError(f'{sym}: last close before {d} is {best[0]} (data gap)')
     return best
 
+def q_live_price(sym, ckey):
+    try:
+        q = cnbc(ckey); return q['last'], iso_ts(q['time']), 'CNBC'
+    except Exception as e:
+        log(f'[quarterly {ckey}] CNBC failed -> Yahoo:', repr(e))
+    y = yahoo(sym, '2y'); return y['c'][-1], iso_ts(y['time']), 'Yahoo'
+
 def update_quarterly(force=False):
-    # Recomputed whenever a new calendar MONTH has completed. The current quarter is shown "to date"
-    # (through the end of the last completed month) and flagged with 'partial_q'.
     path = os.path.join(DATA, 'quarterly.json')
-    year, m = last_completed_month()
-    label = f'{year}-{m:02d}'
+    today = datetime.datetime.now(NY).date()
+    year, mon = today.year, today.month
+    cq = (mon - 1) // 3 + 1                      # current (live, partial) quarter
+    key = f'{year}-{mon:02d}'
     old = load_json(path, {})
-    if not force and old.get('as_of') == label:
-        print(f'quarterly: up to date ({label}) - untouched'); return False
-    q = (m - 1) // 3 + 1  # quarter containing the last completed month
-    partial = (m % 3 != 0)
-    q_end = [month_end(year, 0)] + [month_end(year, min(3 * i, m)) for i in range(1, q + 1)]
-    rows = []
-    for tid, sym, name in Q_ROWS:
-        y = yahoo(sym, '2y')
-        base = close_on_or_before(y, q_end[0], sym)
-        ends = [close_on_or_before(y, q_end[i], sym) for i in range(1, q + 1)]
-        prev_m = close_on_or_before(y, month_end(year, m - 1), sym)
-        pct = lambda a, b: round((b[1] / a[1] - 1) * 100, 4)
-        chain = [base] + ends
-        rows.append({'id': tid, 'symbol': sym.replace('%5E', '^'), 'name': name, 'label': f'{name} ({tid})',
-                     'ytd': pct(base, ends[-1]),
-                     'q': [pct(chain[i - 1], chain[i]) if i <= q else None for i in range(1, 5)],
-                     'month': pct(prev_m, ends[-1]),
-                     'closes': {'prior_year_end': [base[0].isoformat(), round(base[1], 4)],
-                                'quarter_ends': [[e[0].isoformat(), round(e[1], 4)] for e in ends],
-                                'prior_month_end': [prev_m[0].isoformat(), round(prev_m[1], 4)]}})
-    out = {'as_of': label, 'year': year, 'quarter': q, 'partial_q': q if partial else None,
-           'period_end': month_end(year, m).isoformat(),
-           'month': {'num': m, 'label': f'{HE_MONTHS[m - 1]} {year}'},
-           'method': 'close-to-close % price change (Yahoo Finance chart API, unadjusted for dividends)',
-           'generated_at': iso(now_utc()), 'rows': rows}
+    pct = lambda a, b: round((b / a - 1) * 100, 4)
+    if force or old.get('base_key') != key or not all('bases' in r for r in old.get('rows', [])):
+        rows = []
+        for tid, sym, name, ckey in Q_ROWS:
+            y = yahoo(sym, '2y')
+            base = close_on_or_before(y, month_end(year, 0), sym)
+            chain = [base] + [close_on_or_before(y, month_end(year, 3 * i), sym) for i in range(1, cq)]
+            m_base = close_on_or_before(y, month_end(year, mon - 1), sym)
+            rows.append({'id': tid, 'symbol': sym.replace('%5E', '^'), 'cnbc': ckey, 'name': name, 'label': f'{name} ({tid})',
+                         'q': [pct(chain[i - 1][1], chain[i][1]) if i < cq else None for i in range(1, 5)],
+                         'bases': {'ytd': [base[0].isoformat(), round(base[1], 4)],
+                                   'q': [chain[-1][0].isoformat(), round(chain[-1][1], 4)],
+                                   'm': [m_base[0].isoformat(), round(m_base[1], 4)]},
+                         'quarter_ends': [[c[0].isoformat(), round(c[1], 4)] for c in chain[1:]]})
+        print(f'quarterly: base closes recomputed -> {key}')
+    else:
+        rows = old['rows']
+    newest = None
+    for r in rows:
+        try:
+            px, t, src = q_live_price(r['symbol'].replace('^', '%5E'), r['cnbc'])
+        except Exception as e:
+            log(f'[quarterly {r["id"]}] live price FAILED (kept last):', repr(e)); continue
+        b = r['bases']
+        r['ytd'] = pct(b['ytd'][1], px); r['q'][cq - 1] = pct(b['q'][1], px); r['month'] = pct(b['m'][1], px)
+        r.update(live_px=round(px, 4), live_as_of=t, live_src=src)
+        newest = max(newest or t, t)
+    out = {'base_key': key, 'year': year, 'quarter': cq, 'partial_q': cq, 'live': True,
+           'month': {'num': mon, 'label': f'{HE_MONTHS[mon - 1]} (עד כה)'},
+           'method': 'completed quarters: close-to-close; ytd / current quarter / current month: base close -> live price (CNBC, Yahoo fallback); price only, not dividend-adjusted',
+           'live_as_of': newest, 'generated_at': iso(now_utc()), 'rows': rows}
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
-    print(f'quarterly: recomputed -> {label}'); return True
+    print(f'quarterly: live as of {newest}'); return True
 
 def main():
     os.makedirs(DATA, exist_ok=True)
@@ -449,14 +461,18 @@ def main():
 
     hist_path = os.path.join(DATA, 'history.json')
     hist = load_json(hist_path, [])
-    day = (datetime.datetime.fromisoformat(market_time.replace('Z', '+00:00')).astimezone(NY).date()
-           if market_time else datetime.datetime.now(NY).date()).isoformat()
+    # One point per US trading day = the last run of that NY day from the open on (pre-market runs of the next
+    # morning no longer overwrite the previous day's point).
+    now_ny = datetime.datetime.now(NY)
+    write_hist = now_ny.weekday() < 5 and now_ny.time() >= datetime.time(9, 30)
+    day = now_ny.date().isoformat()
     entry = {'d': day, 'score': total, 'core': core_norm, 'with_spx': with_spx, 'pts': core, 'avail': len(avail),
              'spx': spx_pts, 'tier': tier_i, 'missing': len(out['missing']), 't': fetched_at, 'v': 8}
-    hist = [h for h in hist if h.get('d') != day] + [entry]
-    hist.sort(key=lambda h: h['d'])
-    with open(hist_path, 'w', encoding='utf-8') as f:
-        json.dump(hist[-3000:], f, ensure_ascii=False, indent=0)
+    if write_hist:
+        hist = [h for h in hist if h.get('d') != day] + [entry]
+        hist.sort(key=lambda h: h['d'])
+        with open(hist_path, 'w', encoding='utf-8') as f:
+            json.dump(hist[-3000:], f, ensure_ascii=False, indent=0)
 
     print(f'score {total:g}/10 ({TIERS[tier_i][1]}) | points {core:g}/{len(avail)} available of {len(signals)} | S&P rows {spx_pts:g} | '
           f'missing {out["missing"]} | kept {out["kept"]}')
