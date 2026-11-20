@@ -100,9 +100,9 @@ def signed(x, nd=1, suffix='%'):
 # exactly like the values JSON consumed by bottom_dashboard.py.
 DEFS = [
     dict(id='vix', label='VIX', half=28, full=35, base=12, direction='up',
-         half_display='28', full_display='35', source='Yahoo ^VIX', kind='live'),
+         half_display='28', full_display='35', source='CNBC VIX', kind='live'),
     dict(id='vix_ratio', label='VIX/VIX3M', half=1.0, full=1.10, base=0.80, direction='up',
-         half_display='1.00', full_display='1.10', source='Yahoo ^VIX, ^VIX3M', kind='live'),
+         half_display='1.00', full_display='1.10', source='CNBC VIX, VIX3M', kind='live'),
     dict(id='fng', label='פחד וחמדנות CNN', half=25, full=10, base=50, direction='down',
          half_display='≤25', full_display='≤10', source='CNN Fear & Greed', kind='live'),
     dict(id='s5fi', label='S5FI', half=15, full=5, base=50, direction='down',
@@ -119,13 +119,22 @@ SPX_DEFS = [
          half_display='−5%', full_display='−12%', source='Yahoo ^GSPC', kind='live'),
 ]
 
+def spx_live(y):
+    """Inputs the app needs to recompute the S&P rows from a live price with the same formulas:
+    the live price replaces the last bar if it is the same NY date, otherwise it is appended."""
+    c, d = y['c'], y['dates']
+    i_all = c.index(max(c)); i_ex = c.index(max(c[:-1]))
+    return {'last_date': d[-1].isoformat(), 'ath_all': round(c[i_all], 4), 'ath_all_date': d[i_all].isoformat(),
+            'ath_ex_last': round(c[i_ex], 4), 'ath_ex_last_date': d[i_ex].isoformat(),
+            'sum199_prev': round(sum(c[-200:-1]), 4), 'sum199_last': round(sum(c[-199:]), 4)}
+
 def f_dd(sym):
     def f():
         y = yahoo(sym, '10y'); c = y['c']
         ath = max(c); i = c.index(ath)
         dd = (1 - c[-1] / ath) * 100
         return dict(value=round(dd, 2), display=f'{dd:.2f}%', points=pts(-dd, -10, -20),
-                    note=f'שיא {ath:,.0f} ({y["dates"][i].strftime("%-d.%-m.%Y")})', as_of=iso_ts(y['time']))
+                    note=f'שיא {ath:,.0f} ({y["dates"][i].strftime("%-d.%-m.%Y")})', as_of=iso_ts(y['time']), live=spx_live(y))
     return f
 
 def f_200(sym):
@@ -133,18 +142,52 @@ def f_200(sym):
         y = yahoo(sym, '10y'); c = y['c']
         v = (c[-1] / sma(c, 200) - 1) * 100
         return dict(value=round(-v, 2), display=signed(v), points=pts(v, -5, -12),
-                    note=f'ממוצע 200 יום: {sma(c, 200):,.0f}', as_of=iso_ts(y['time']))
+                    note=f'ממוצע 200 יום: {sma(c, 200):,.0f}', as_of=iso_ts(y['time']), live=spx_live(y))
     return f
 
+# ------------------------------------------------------------------ CNBC quotes (fresher than Yahoo; same feed the app reads live on refresh)
+CNBC_URL = ('https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols={}'
+            '&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1')
+CNBC_SYM = {'vix': '.VIX', 'vix3m': '.VIX3M', 'spx': '.SPX', 'y10': 'US10Y', 'y30': 'US30Y',
+            'brent': '@LCO.1', 'dxy': '.DXY', 'ndx': '.NDX', 'qqq': 'QQQ'}
+_CNBC = {}
+def _num(x): return float(str(x).replace(',', '').replace('%', '').strip())
+def cnbc(key):
+    """Regular-session quote: {'last', 'prev', 'time'(epoch)}. Raises if missing/invalid."""
+    if not _CNBC:
+        raw = json.loads(get(CNBC_URL.format('%7C'.join(CNBC_SYM.values())), {'User-Agent': BROWSER, 'Accept': 'application/json'}, tries=2, timeout=15))
+        for q in raw['FormattedQuoteResult']['FormattedQuote']:
+            _CNBC[q.get('symbol')] = q
+    q = _CNBC.get(CNBC_SYM[key])
+    if not q or q.get('code') not in (0, '0') or q.get('last') in (None, ''): raise ValueError(f'CNBC {key}: no quote')
+    last, chg = _num(q['last']), _num(q.get('change') or 0)
+    t = str(q.get('last_time') or '')
+    if len(t) == 10:  # date only (market closed) -> that session's close
+        d = datetime.date.fromisoformat(t); ts = datetime.datetime(d.year, d.month, d.day, 16, 15 if key.startswith('vix') else 0, tzinfo=NY).timestamp()
+    else:
+        ts = datetime.datetime.strptime(t[:19] + t[-5:], '%Y-%m-%dT%H:%M:%S%z').timestamp()
+    if last <= 0: raise ValueError(f'CNBC {key}: bad value {last}')
+    return {'last': last, 'prev': last - chg, 'time': int(ts)}
+
+def vix_pair():
+    """(vix, vix3m, vix_time, vix3m_time, source) - CNBC first, Yahoo fallback."""
+    try:
+        a, b = cnbc('vix'), cnbc('vix3m')
+        return a['last'], b['last'], a['time'], b['time'], 'CNBC'
+    except Exception as e:
+        log('VIX CNBC failed -> Yahoo:', repr(e))
+    a, b = yahoo('%5EVIX', '1mo'), yahoo('%5EVIX3M', '1mo')
+    return a['c'][-1], b['c'][-1], a['time'], b['time'], 'Yahoo'
+
 def f_vix():
-    y = yahoo('%5EVIX', '1mo'); v = y['c'][-1]
-    return dict(value=round(v, 2), display=f'{v:.1f}', points=pts(v, 28, 35, False), as_of=iso_ts(y['time']))
+    v, _, t, _, src = vix_pair()
+    return dict(value=round(v, 2), display=f'{v:.1f}', points=pts(v, 28, 35, False), as_of=iso_ts(t), source=f'{src} VIX')
 
 def f_vix_ratio():
-    a, b = yahoo('%5EVIX', '1mo'), yahoo('%5EVIX3M', '1mo')
-    r = a['c'][-1] / b['c'][-1]
+    a, b, ta, tb, src = vix_pair()
+    r = a / b
     return dict(value=round(r, 3), display=f'{r:.2f}', points=pts(r, 1.0, 1.10, False),
-                note=f'VIX3M {b["c"][-1]:.1f}', as_of=iso_ts(min(a['time'], b['time'])))
+                note=f'VIX3M {b:.1f}', as_of=iso_ts(min(ta, tb)), vix3m=round(b, 2), source=f'{src} VIX, VIX3M')
 
 _CNN = {}
 def cnn():
@@ -241,9 +284,15 @@ def run_signal(d, prev, fetched_at):
 # ------------------------------------------------------------------ info rows / yields
 def run_quote(key, sym, label, fmt, prev, fetched_at, rng='1mo'):
     try:
+        q = cnbc(key)
+        return dict(id=key, label=label, value=round(q['last'], 3), display=fmt(q['last']),
+                    change=round((q['last'] / q['prev'] - 1) * 100, 2), as_of=iso_ts(q['time']), fetched_at=fetched_at, status='live', source='CNBC')
+    except Exception as e:
+        log(f'[{key}] CNBC failed -> Yahoo:', repr(e))
+    try:
         y = yahoo(sym, rng); c = y['c']
         return dict(id=key, label=label, value=round(c[-1], 3), display=fmt(c[-1]),
-                    change=round((c[-1] / c[-2] - 1) * 100, 2), as_of=iso_ts(y['time']), fetched_at=fetched_at, status='live')
+                    change=round((c[-1] / c[-2] - 1) * 100, 2), as_of=iso_ts(y['time']), fetched_at=fetched_at, status='live', source='Yahoo')
     except Exception as e:
         log(f'[{key}] FAILED:', repr(e))
         p = prev.get(key)

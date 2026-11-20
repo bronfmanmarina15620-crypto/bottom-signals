@@ -227,7 +227,8 @@ function render(d, cfg, hist, stats) {
   // updated + alerts
   const gen = d.generated_at;
   $('updated').innerHTML = `עודכן לאחרונה: <b>${esc(weekdayIL(gen))} ${bidi(fmtIL(gen, true))}</b> (שעון ישראל)` +
-    (d.market_time ? ` · נתוני שוק עד ${bidi(fmtIL(d.market_time))}` : '');
+    (d.market_time ? ` · נתוני שוק עד ${bidi(fmtIL(d.market_time))}` : '') +
+    (d.live_info ? `<br>נתונים חיים: <b>${bidi(fmtIL(new Date(d.live_info.newest).toISOString()))}</b> (${bidi(d.live_info.sources.join(', '))})` : '');
   const alerts = [];
   const staleH = Math.max(weekdayHours(gen), weekdayHours(d.market_time));
   if (staleH > 30) alerts.push(`<div class="alert stale">⚠ הנתונים ישנים — העדכון האחרון לפני יותר מיום מסחר. ייתכן שהעדכון האוטומטי נתקע.</div>`);
@@ -308,6 +309,115 @@ function renderQuarterly(q) {
   sec.hidden = false;
 }
 
+
+// ---------------------------------------------------------------- live refresh (browser-side, CORS-allowed public feeds)
+// On every load/refresh the file values (data/latest.json, written by the GitHub Action) are overlaid with the freshest
+// public quotes, then points/score/tier are recomputed with the SAME rules as scripts/update.py. A value is replaced
+// only if the live one is newer than the file one; any failure silently keeps the file value.
+const CNBC_SYM = { vix: '.VIX', vix3m: '.VIX3M', spx: '.SPX', y10: 'US10Y', y30: 'US30Y', brent: '@LCO.1', dxy: '.DXY', ndx: '.NDX', qqq: 'QQQ' };
+const CNBC_URL = 'https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=' +
+  Object.values(CNBC_SYM).map(encodeURIComponent).join('%7C') + '&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1';
+const CNN_URL = 'https://production.dataviz.cnn.io/index/fearandgreed/graphdata';
+function fetchTO(url, ms) {
+  const c = new AbortController(); const t = setTimeout(() => c.abort(), ms);
+  return fetch(url, { cache: 'no-store', referrerPolicy: 'no-referrer', signal: c.signal }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).finally(() => clearTimeout(t));
+}
+const num = (x) => parseFloat(String(x).replace(/[,%\s]/g, ''));
+const nyDate = (ms) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(ms));
+function nyCloseMs(ymd, hh, mm) { // a NY wall-clock time -> epoch ms (handles EST/EDT)
+  const guess = Date.UTC(+ymd.slice(0, 4), +ymd.slice(5, 7) - 1, +ymd.slice(8, 10), hh, mm);
+  const p = parts(new Date(guess), { timeZone: 'America/New_York', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const asUTC = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
+  return guess + (guess - asUTC);
+}
+function parseCNBC(j) {
+  const out = {}, by = {};
+  ((j && j.FormattedQuoteResult && j.FormattedQuoteResult.FormattedQuote) || []).forEach((q) => (by[q.symbol] = q));
+  for (const [k, sym] of Object.entries(CNBC_SYM)) {
+    const q = by[sym]; if (!q || String(q.code) !== '0') continue;
+    const last = num(q.last), chg = num(q.change || 0), t = String(q.last_time || '');
+    if (!(last > 0)) continue;
+    const ms = t.length === 10 ? nyCloseMs(t, 16, k.startsWith('vix') ? 15 : 0) : Date.parse(t);
+    if (!isFinite(ms)) continue;
+    out[k] = { last, prev: last - chg, ms };
+  }
+  return out;
+}
+// same as update.py pts()/frac()/bars()
+function ptsRule(s, v) {
+  if (v == null) return 0;
+  return s.direction === 'down' ? (v <= s.full ? 1 : v <= s.half ? 0.5 : 0) : (v >= s.full ? 1 : v >= s.half ? 0.5 : 0);
+}
+function frac(base, full, x) { return full === base ? (x >= full ? 1 : 0) : Math.max(0, Math.min(1, (x - base) / (full - base))); }
+function rebar(s) {
+  const p0 = s.progress != null ? s.progress : frac(s.base, s.full, s.value);
+  const h = s.half_mark != null ? s.half_mark : frac(s.base, s.full, s.half);
+  let p = p0; if (s.points >= 1) p = Math.max(p, 1); else if (s.points >= 0.5) p = Math.max(p, h);
+  s.bar_p = Math.round(Math.max(0, Math.min(1, p)) * 1e4) / 1e4; s.bar_h = Math.round(h * 1e4) / 1e4;
+  s.color = s.points >= 0.5 ? 'green' : (p >= 0.5 ? 'yellow' : 'gray');
+}
+const newer = (ms, iso) => !iso || ms > Date.parse(iso) + 1000;
+const signedPct = (x) => (x >= 0 ? '+' : '−') + Math.abs(x).toFixed(1) + '%';
+function setSig(s, value, display, extra) {
+  Object.assign(s, { value, display, status: 'live', live: true }, extra || {});
+  s.points = ptsRule(s, value); rebar(s);
+}
+function applyLive(d, q, cnn) {
+  const used = new Set(); let newest = 0;
+  const mark = (src, ms) => { used.add(src); newest = Math.max(newest, ms); };
+  const sig = (id) => d.signals.find((s) => s.id === id) || (d.spx_signals || []).find((s) => s.id === id);
+  const fmtTime = (ms) => new Date(ms).toISOString().replace(/\.\d+Z$/, 'Z');
+  // VIX + VIX/VIX3M (VIX trades in Cboe global hours too; the ratio uses the latest VIX3M, exactly as the server does)
+  const v = sig('vix'), r = sig('vix_ratio');
+  if (q.vix && v && newer(q.vix.ms, v.as_of)) {
+    setSig(v, Math.round(q.vix.last * 100) / 100, q.vix.last.toFixed(1), { as_of: fmtTime(q.vix.ms), source: 'CNBC VIX (חי)' }); v.points = ptsRule(v, q.vix.last); rebar(v); mark('CNBC', q.vix.ms);
+    if (q.vix3m && r) {
+      const ratio = q.vix.last / q.vix3m.last;
+      setSig(r, Math.round(ratio * 1000) / 1000, ratio.toFixed(2), { as_of: fmtTime(Math.min(q.vix.ms, q.vix3m.ms)), note: `VIX3M ${q.vix3m.last.toFixed(1)}`, source: 'CNBC VIX, VIX3M (חי)' });
+      r.points = ptsRule(r, ratio); rebar(r);
+    }
+  }
+  // CNN Fear & Greed + put/call score
+  if (cnn) {
+    const tms = (node) => { const t = node && node.timestamp; const ms = typeof t === 'number' ? (t > 1e11 ? t : t * 1000) : Date.parse(t); return isFinite(ms) ? ms : null; };
+    const fg = cnn.fear_and_greed, pc = cnn.put_call_options, f = sig('fng'), p = sig('putcall');
+    const fms = tms(fg);
+    if (fg && f && fms && isFinite(+fg.score) && newer(fms, f.as_of)) { const x = +fg.score; setSig(f, Math.round(x * 10) / 10, x.toFixed(1), { as_of: fmtTime(fms), source: 'CNN Fear & Greed (חי)' }); f.points = ptsRule(f, x); rebar(f); mark('CNN', fms); }
+    const pms = tms(pc) || fms;
+    if (pc && p && pms && isFinite(+pc.score) && newer(pms, p.as_of)) { const x = +pc.score; setSig(p, Math.round(x * 10) / 10, x.toFixed(0), { as_of: fmtTime(pms), source: 'CNN Fear & Greed (חי)' }); p.points = ptsRule(p, x); rebar(p); mark('CNN', pms); }
+  }
+  // S&P 500 rows: same formulas, live price replaces the last daily close (same NY date) or is appended (new date)
+  const dd = sig('spx_dd'), m2 = sig('spx_200');
+  if (q.spx && dd && dd.live && typeof dd.live === 'object' && newer(q.spx.ms, dd.as_of)) {
+    const L = dd.live, px = q.spx.last, same = nyDate(q.spx.ms) === L.last_date;
+    let ath = same ? L.ath_ex_last : L.ath_all, athDate = same ? L.ath_ex_last_date : L.ath_all_date;
+    if (px >= ath) { ath = px; athDate = nyDate(q.spx.ms); }
+    const ddv = (1 - px / ath) * 100, [Y, M, D] = athDate.split('-');
+    setSig(dd, Math.round(ddv * 100) / 100, ddv.toFixed(2) + '%', { as_of: fmtTime(q.spx.ms), source: 'CNBC S&P 500 (חי)', note: `שיא ${Math.round(ath).toLocaleString('en-US')} (${+D}.${+M}.${Y})` });
+    dd.points = ptsRule(dd, ddv); rebar(dd); mark('CNBC', q.spx.ms);
+    if (m2 && m2.live && typeof m2.live === 'object') {
+      const sma = ((same ? L.sum199_prev : L.sum199_last) + px) / 200, x = (px / sma - 1) * 100;
+      setSig(m2, Math.round(-x * 100) / 100, signedPct(x), { as_of: fmtTime(q.spx.ms), source: 'CNBC S&P 500 (חי)', note: `ממוצע 200 יום: ${Math.round(sma).toLocaleString('en-US')}` });
+      m2.points = ptsRule(m2, -x); rebar(m2);
+    }
+  }
+  // yields + info rows (display formats as in update.py)
+  const FMT = { y10: (x) => x.toFixed(2) + '%', y30: (x) => x.toFixed(2) + '%', brent: (x) => '$' + x.toFixed(2), dxy: (x) => x.toFixed(2),
+    ndx: (x) => Math.round(x).toLocaleString('en-US'), qqq: (x) => '$' + x.toFixed(2) };
+  for (const row of (d.yields || []).concat(d.info || [])) {
+    const lq = q[row.id]; if (!lq || !FMT[row.id] || !newer(lq.ms, row.as_of)) continue;
+    Object.assign(row, { value: Math.round(lq.last * 1000) / 1000, display: FMT[row.id](lq.last), change: Math.round((lq.last / lq.prev - 1) * 1e4) / 100,
+      as_of: fmtTime(lq.ms), status: 'live', live: true });
+    mark('CNBC', lq.ms);
+  }
+  if (used.size) d.live_info = { sources: [...used], newest };
+  return d;
+}
+async function fetchLive() {
+  const [q, cnn] = await Promise.all([fetchTO(CNBC_URL, 8000).then(parseCNBC).catch(() => ({})), fetchTO(CNN_URL, 8000).catch(() => null)]);
+  return { q, cnn };
+}
+
 // ---------------------------------------------------------------- load / refresh
 let loading = false;
 async function getJSON(url) {
@@ -321,6 +431,12 @@ async function load() {
     const [d, cfg, hist, stats, qd] = await Promise.all([getJSON('data/latest.json'), getJSON('config.json').catch(() => ({})), getJSON('data/history.json').catch(() => []), getJSON('data/indicator_stats.json').catch(() => null), getJSON('data/quarterly.json').catch(() => null)]);
     render(d, cfg || {}, hist, stats);
     try { renderQuarterly(qd); } catch (e) { console.error(e); }
+    // then overlay the freshest live values and recompute (silent fallback to the file values)
+    try {
+      const lv = await fetchLive();
+      applyLive(d, lv.q, lv.cnn);
+      if (d.live_info) render(d, cfg || {}, hist, stats);
+    } catch (e) { console.error(e); }
   } catch (e) {
     $('alerts').innerHTML = `<div class="alert err">לא הצלחתי לטעון את הנתונים. בדקי חיבור ונסי לרענן.</div>`;
     console.error(e);
