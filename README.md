@@ -46,3 +46,8 @@ Edit the file on GitHub (pencil icon → Commit). The page picks it up on the ne
 Yield warning lines are fixed in `scripts/update.py` (`YIELD_LINES`: 10Y 5.25%, 30Y 5.5%) — do not change.
 
 Not investment advice.
+
+## Graded scoring (20.11.2026)
+Each of the 5 counted signals scores clamp((value-base)/(full-base),0,1); half/full thresholds unchanged (half = reference mark,
+`step` field keeps the 0/0.5/1 crossing state for pills/colors). S5FI half threshold moved 15% -> 20%. Score = sum/available x10, one
+decimal. history.json was recomputed with graded points from each day's latest.json snapshot in git (v=8, `recomputed: graded-no-aaii`, per-signal `g`).

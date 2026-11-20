@@ -8,7 +8,10 @@ bottom_score.py) plus 2 S&P 500 market-health rows (shown, not counted by defaul
 Robust by design: every source is fetched in its own try/except. If a source fails, the last
 good value is kept with its own timestamp (status "kept"); if there never was one, the signal
 is marked "na" (shown as 'אין נתון') and left out of the score. Nothing is ever guessed.
-Score = points earned / points available (signals with data) x 10, i.e. normalized to 0-10.
+Score = points earned / points available (signals with data) x 10, i.e. normalized to 0-10, one decimal.
+GRADED scoring (20.11.2026, approved by Marina): each of the 5 counted signals scores
+clamp((value - base) / (full - base), 0, 1) - continuous between the calm end (base) and the full threshold, so every
+worsening moves the score. The half threshold is kept as a reference mark and drives the status pill ('step' field).
 The 4 low-reliability signals (NDX drawdown, NDX vs 200d, HY OAS, macro relief) were removed on 1.10.2026.
 AAII (weekly survey, collected days before publication) was removed from the score on 20.11.2026 at Marina's
 request: the score must use only live market data. It is still fetched and shown as an info-only row.
@@ -81,16 +84,25 @@ def frac(base, full, x):
     if full == base: return 1.0 if x >= full else 0.0
     return max(0.0, min(1.0, (x - base) / (full - base)))
 
+GRADED = ('vix', 'vix_ratio', 'fng', 'putcall', 's5fi')
+
+def step_pts(s, v):
+    """The old 0 / 0.5 / 1 step rule from the definition's half/full thresholds (used for status pills/colors)."""
+    if v is None: return 0
+    if s['direction'] == 'down': return 1 if v <= s['full'] else 0.5 if v <= s['half'] else 0
+    return 1 if v >= s['full'] else 0.5 if v >= s['half'] else 0
+
 def bars(s):
     """Same bar logic as bottom_dashboard.enrich(): fill from the right toward the full-point end."""
     if s.get('value') is None:
         s['bar_p'], s['bar_h'], s['color'] = 0, s.get('half_mark', frac(s['base'], s['full'], s['half'])), 'gray'; return s
     p = s['progress'] if s.get('progress') is not None else frac(s['base'], s['full'], s['value'])
     h = s['half_mark'] if s.get('half_mark') is not None else frac(s['base'], s['full'], s['half'])
-    if s['points'] >= 1: p = max(p, 1.0)
-    elif s['points'] >= 0.5: p = max(p, h)
+    st = s.get('step', s['points'])
+    if st >= 1: p = max(p, 1.0)
+    elif st >= 0.5: p = max(p, h)
     s['bar_p'], s['bar_h'] = round(max(0, min(1, p)), 4), round(h, 4)
-    s['color'] = 'green' if s['points'] >= 0.5 else ('yellow' if p >= 0.5 else 'gray')
+    s['color'] = 'green' if st >= 0.5 else ('yellow' if p >= 0.5 else 'gray')
     return s
 
 def signed(x, nd=1, suffix='%'):
@@ -107,8 +119,8 @@ DEFS = [
          half_display='1.00', full_display='1.10', source='CNBC VIX, VIX3M', kind='live'),
     dict(id='fng', label='פחד וחמדנות CNN', half=25, full=10, base=50, direction='down',
          half_display='≤25', full_display='≤10', source='CNN Fear & Greed', kind='live'),
-    dict(id='s5fi', label='S5FI', half=15, full=5, base=50, direction='down',
-         half_display='≤15%', full_display='≤5%', source='ChartRow / חישוב עצמי', kind='live'),
+    dict(id='s5fi', label='S5FI', half=20, full=5, base=50, direction='down',
+         half_display='≤20%', full_display='≤5%', source='ChartRow / חישוב עצמי', kind='live'),
     dict(id='putcall', label='פוט/קול (CNN)', half=25, full=10, base=50, direction='down',
          half_display='≤25', full_display='≤10', source='CNN Fear & Greed', kind='live'),
 ]
@@ -232,7 +244,7 @@ def f_s5fi():
     d = datetime.datetime.strptime(dm.group(1), '%b %d, %Y').date()
     if (datetime.datetime.now(NY).date() - d).days > 5: raise ValueError(f'ChartRow: stale ({d})')
     v = int(m.group(2)) / int(m.group(3)) * 100
-    return dict(value=round(v, 1), display=f'{v:.0f}%', points=pts(v, 15, 5), as_of=iso_date_ny(d),
+    return dict(value=round(v, 1), display=f'{v:.0f}%', points=pts(v, 20, 5), as_of=iso_date_ny(d),
                 source='ChartRow — אחוז מניות S&P 500 מעל ממוצע 50 יום', kind='live', date_only=True,
                 note=f'{m.group(2)} מתוך {m.group(3)} מניות')
 
@@ -258,7 +270,7 @@ def s5fi_compute():
     v = above / len(res) * 100
     intraday = last >= datetime.datetime.now(NY).date() and is_us_session()
     when = 'מחושב ממחירים תוך-יומיים · מתעדכן כל כ־30 דקות' if intraday else f'מחושב לפי סגירת {last.day}.{last.month}'
-    return dict(value=round(v, 1), display=f'{v:.0f}%', points=pts(v, 15, 5), as_of=iso(now_utc()) if intraday else iso_date_ny(last),
+    return dict(value=round(v, 1), display=f'{v:.0f}%', points=pts(v, 20, 5), as_of=iso(now_utc()) if intraday else iso_date_ny(last),
                 source='אחוז מניות S&P 500 מעל ממוצע 50 יום — חישוב עצמי מ־Yahoo ורשימת ויקיפדיה', kind='computed', date_only=not intraday,
                 note=f'{when} · {above} מתוך {len(res)} מניות')
 
@@ -294,6 +306,10 @@ def run_signal(d, prev, fetched_at):
         else:
             s.update(value=None, display='אין נתון', points=0, as_of=None, fetched_at=None, status='na')
         s['error'] = str(e)[:200]
+    if d['id'] in GRADED and s.get('value') is not None and s.get('status') != 'na':
+        s['step'] = step_pts(s, s['value'])
+        s['points'] = round(frac(s['base'], s['full'], s['value']), 4)
+        s['scoring'] = 'graded'
     return bars(s)
 
 # ------------------------------------------------------------------ info rows / yields
@@ -407,7 +423,8 @@ def main():
 
     avail = [s for s in signals if s['status'] != 'na']; spx_avail = [s for s in spx if s['status'] != 'na']
     core = sum(s['points'] for s in avail); spx_pts = sum(s['points'] for s in spx_avail)
-    norm = lambda p, n: round(p / n * 10, 2) if n else 0.0
+    norm = lambda p, n: round(p / n * 10, 1) if n else 0.0
+    core = round(core, 4)
     core_norm = norm(core, len(avail)); with_spx = norm(core + spx_pts, len(avail) + len(spx_avail))
     total = with_spx if count_spx else core_norm
     tier_i = next(i for i, (lim, _) in enumerate(TIERS) if total < lim)
@@ -416,7 +433,7 @@ def main():
     out = {
         'generated_at': fetched_at,
         'market_time': market_time,
-        'score': total, 'score_max': 10, 'score_method': 'points earned / points available x 10',
+        'score': total, 'score_max': 10, 'score_method': 'graded: sum(clamp((value-base)/(full-base),0,1)) / available x 10',
         'score_core': core_norm, 'score_with_spx': with_spx, 'count_spx_in_score': count_spx,
         'points': core, 'points_available': len(avail), 'signals_count': len(signals), 'score_spx': spx_pts,
         'tier_index': tier_i, 'tier': TIERS[tier_i][1],
@@ -435,7 +452,7 @@ def main():
     day = (datetime.datetime.fromisoformat(market_time.replace('Z', '+00:00')).astimezone(NY).date()
            if market_time else datetime.datetime.now(NY).date()).isoformat()
     entry = {'d': day, 'score': total, 'core': core_norm, 'with_spx': with_spx, 'pts': core, 'avail': len(avail),
-             'spx': spx_pts, 'tier': tier_i, 'missing': len(out['missing']), 't': fetched_at, 'v': 7}
+             'spx': spx_pts, 'tier': tier_i, 'missing': len(out['missing']), 't': fetched_at, 'v': 8}
     hist = [h for h in hist if h.get('d') != day] + [entry]
     hist.sort(key=lambda h: h['d'])
     with open(hist_path, 'w', encoding='utf-8') as f:
@@ -444,7 +461,7 @@ def main():
     print(f'score {total:g}/10 ({TIERS[tier_i][1]}) | points {core:g}/{len(avail)} available of {len(signals)} | S&P rows {spx_pts:g} | '
           f'missing {out["missing"]} | kept {out["kept"]}')
     for s in signals + spx + info_signals:
-        print(f'  {s["points"]:>3}  {s["id"]:<10} {s["display"]:<10} {s["status"]}')
+        print(f'  {s["points"]:>6}  {s["id"]:<10} {s["display"]:<10} {s["status"]}')
     for y in yields + info:
         print(f'       {y["id"]:<10} {y.get("display")} {y.get("status")}')
     try:

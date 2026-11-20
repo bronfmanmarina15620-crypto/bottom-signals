@@ -8,12 +8,14 @@ const TIERS = [ // [from, to(excl), name, color, range label]
 ];
 // The 5 scored LIVE signals (NDX drawdown, NDX vs 200d, HY OAS and macro relief were removed on 1.10.2026;
 // AAII, a weekly survey collected days earlier, was removed from the score on 20.11.2026 and is shown as info only).
-// Score = points earned / points available (signals with data) x 10.
+// Score = points earned / points available (signals with data) x 10, one decimal.
+// GRADED (20.11.2026): each counted signal scores clamp((value-base)/(full-base),0,1); half/full thresholds unchanged,
+// the half mark is a reference only. s.step keeps the old 0/0.5/1 crossing state for the status pills / colors.
 const SCORED = ['vix', 'vix_ratio', 'fng', 's5fi', 'putcall'];
 const hasData = (s) => s && s.status !== 'na' && s.value != null;
 function normScore(list) {
   const av = list.filter(hasData), pts = av.reduce((a, s) => a + (s.points || 0), 0);
-  return { pts, n: av.length, score: av.length ? pts / av.length * 10 : 0 };
+  return { pts, n: av.length, score: av.length ? Math.round(pts / av.length * 100) / 10 : 0 };
 }
 const COLORS = { gray: '#6b7280', yellow: '#f2c94c', green: '#27ae60' };
 const $ = (id) => document.getElementById(id);
@@ -105,16 +107,17 @@ function metaLine(s) {
 function rowHTML(s, num, extraClass) {
   const na = s.status === 'na' || s.value == null;
   const p = na ? 0 : s.bar_p, h = s.bar_h ?? 0.5, col = COLORS[s.color] || COLORS.gray;
-  const pt = s.points || 0;
+  const pt = stepOf(s);
   const dotBg = pt >= 1 ? COLORS.green : pt >= 0.5 ? 'linear-gradient(to left, #27ae60 50%, #2a3140 50%)' : '#2a3140';
   const dotBd = pt >= 0.5 ? COLORS.green : '#4b5563';
   const shift = h > 0.72 ? '100%' : h < 0.12 ? '0%' : '50%';
   const curColor = s.color === 'gray' || !s.color ? '#ffffff' : col;
-  const ptsTxt = pt >= 1 ? 'נקודה' : pt >= 0.5 ? 'חצי נקודה' : '0 נקודות';
+  const graded = SCORED.includes(s.id) && extraClass !== 'infoonly';
+  const ptsTxt = graded ? `${(s.points || 0).toFixed(2)} נקודות` : pt >= 1 ? 'נקודה' : pt >= 0.5 ? 'חצי נקודה' : '0 נקודות';
   return `<div class="row ${extraClass || ''}">
   <div class="r1"><div class="lab"><span class="num">${num}</span>${bidi(s.label)}</div>
     ${na ? '<div class="cur na">אין נתון</div><span class="dot na" aria-label="אין נתון"></span>'
-         : `<div class="cur" style="color:${curColor}">${esc(s.display)}</div><span class="dot" style="background:${dotBg};border-color:${dotBd}" title="${ptsTxt}" aria-label="${ptsTxt}"></span>`}
+         : `<div class="cur" style="color:${curColor}">${esc(s.display)}</div>${graded ? `<span class="gpts" title="ניקוד הדרגתי מתוך 1"><bdi dir="ltr">${(s.points || 0).toFixed(2)}</bdi></span>` : ''}<span class="dot" style="background:${dotBg};border-color:${dotBd}" title="${ptsTxt}" aria-label="${ptsTxt}"></span>`}
   </div>
   <div class="meta">${metaLine(s)}</div>
   <div class="barwrap"><div class="bar${na ? ' na' : ''}"><div class="fill" style="width:${(p * 100).toFixed(1)}%;background:${col}"></div></div>
@@ -129,10 +132,11 @@ function rowHTML(s, num, extraClass) {
 const STATUS = { // by points of the live signal
   calm: ['רגוע', '#8a94a6'], near: ['מתקרב', '#f2c94c'], extreme: ['פחד קיצוני', '#27ae60'], na: ['אין נתון', '#6b7280'],
 };
-const stKey = (s) => (!s || s.status === 'na' || s.value == null) ? 'na' : (s.points >= 1 ? 'extreme' : s.points >= 0.5 ? 'near' : 'calm');
+const stepOf = (s) => (s && s.step != null ? s.step : (s && s.points) || 0);
+const stKey = (s) => (!s || s.status === 'na' || s.value == null) ? 'na' : (stepOf(s) >= 1 ? 'extreme' : stepOf(s) >= 0.5 ? 'near' : 'calm');
 const TOP3 = [
   { id: 'vix', name: 'VIX', sub: 'מדד הפחד', full: '≥35', half: '≥28' },
-  { id: 's5fi', name: 'S5FI', sub: 'מניות מעל ממוצע 50 יום', full: '≤5%', half: '≤15%' },
+  { id: 's5fi', name: 'S5FI', sub: 'מניות מעל ממוצע 50 יום', full: '≤5%', half: '≤20%' },
   { id: 'fng', name: 'פחד וחמדנות', sub: 'CNN', full: '≤10', half: '≤25',
     second: { id: 'vix_ratio', name: 'VIX/VIX3M', full: '≥1.10', half: '≥1.00' } },
 ];
@@ -242,7 +246,7 @@ function render(d, cfg, hist, stats) {
   // gauge
   $('gauge').innerHTML = gaugeSVG(total, max, tier[3], thr) +
     `<div class="center"><div class="big">${fmtNum(total)}<small>/${max}</small></div><span class="tier" style="background:${tier[3]}">${esc(tier[2])}</span></div>`;
-  $('ptsl').innerHTML = `<bdi dir="ltr">${fmtNum(ns.pts)}</bdi> נקודות מתוך <bdi dir="ltr">${ns.n}</bdi> אפשריות` +
+  $('ptsl').innerHTML = `ניקוד הדרגתי: <bdi dir="ltr">${ns.pts.toFixed(2)}</bdi> נקודות מתוך <bdi dir="ltr">${ns.n}</bdi> אפשריות` +
     (ns.n < counted.length ? ` · <bdi dir="ltr">${counted.length - ns.n}</bdi> סימנים בלי נתון` : '') + ` · <bdi dir="ltr">${counted.length}</bdi> סימנים בציון`;
   $('legend').innerHTML = TIERS.map((t, i) => `<div class="chip${i === ti ? ' on' : ''}"><span class="sw" style="background:${t[3]}"></span><span class="cn">${esc(t[2])}</span><span class="cr"><bdi dir="ltr">${t[4]}</bdi></span></div>`).join('');
 
@@ -283,7 +287,7 @@ function render(d, cfg, hist, stats) {
   // v7 = 5 live signals (no AAII). Entries before 20.11.2026 were recomputed without AAII from the stored per-run data.
   const h6 = h.filter((x) => x.v === 7);
   const hs = h6.map((x) => ({ ...x, score: countSpx ? (x.with_spx ?? x.score) : (x.core ?? x.score) }));
-  $('hist').innerHTML = histSVG(hs, max) + `<div class="hn">${hs.length <= 1 ? 'ההיסטוריה מתחילה עכשיו — נשמרת נקודה אחת לכל יום מסחר.' : `${hs.length} ימי מסחר · ימין = הישן, שמאל = החדש · חושב לאחור בלי <bdi dir="ltr">AAII</bdi>`}</div>`;
+  $('hist').innerHTML = histSVG(hs, max) + `<div class="hn">${hs.length <= 1 ? 'ההיסטוריה מתחילה עכשיו — נשמרת נקודה אחת לכל יום מסחר.' : `${hs.length} ימי מסחר · ימין = הישן, שמאל = החדש · חושב לאחור בניקוד הדרגתי, בלי <bdi dir="ltr">AAII</bdi>`}</div>`;
 }
 
 // ---------------------------------------------------------------- quarterly momentum heatmap (updated after each completed month; current quarter shown to date)
@@ -347,7 +351,12 @@ function parseCNBC(j) {
   return out;
 }
 // same as update.py pts()/frac()/bars()
-function ptsRule(s, v) {
+function ptsRule(s, v) { // graded for the counted signals, step for the rest (S&P rows)
+  if (v == null) return 0;
+  if (SCORED.includes(s.id)) return Math.round(frac(s.base, s.full, v) * 1e4) / 1e4;
+  return stepRule(s, v);
+}
+function stepRule(s, v) {
   if (v == null) return 0;
   return s.direction === 'down' ? (v <= s.full ? 1 : v <= s.half ? 0.5 : 0) : (v >= s.full ? 1 : v >= s.half ? 0.5 : 0);
 }
@@ -355,15 +364,20 @@ function frac(base, full, x) { return full === base ? (x >= full ? 1 : 0) : Math
 function rebar(s) {
   const p0 = s.progress != null ? s.progress : frac(s.base, s.full, s.value);
   const h = s.half_mark != null ? s.half_mark : frac(s.base, s.full, s.half);
-  let p = p0; if (s.points >= 1) p = Math.max(p, 1); else if (s.points >= 0.5) p = Math.max(p, h);
+  const st = stepOf(s);
+  let p = p0; if (st >= 1) p = Math.max(p, 1); else if (st >= 0.5) p = Math.max(p, h);
   s.bar_p = Math.round(Math.max(0, Math.min(1, p)) * 1e4) / 1e4; s.bar_h = Math.round(h * 1e4) / 1e4;
-  s.color = s.points >= 0.5 ? 'green' : (p >= 0.5 ? 'yellow' : 'gray');
+  s.color = st >= 0.5 ? 'green' : (p >= 0.5 ? 'yellow' : 'gray');
 }
 const newer = (ms, iso) => !iso || ms > Date.parse(iso) + 1000;
 const signedPct = (x) => (x >= 0 ? '+' : '−') + Math.abs(x).toFixed(1) + '%';
 function setSig(s, value, display, extra) {
   Object.assign(s, { value, display, status: 'live', live: true }, extra || {});
-  s.points = ptsRule(s, value); rebar(s);
+  setPts(s, value); rebar(s);
+}
+function setPts(s, v) {
+  s.points = ptsRule(s, v);
+  if (SCORED.includes(s.id)) s.step = stepRule(s, v); else delete s.step;
 }
 function applyLive(d, q, cnn) {
   const used = new Set(); let newest = 0;
@@ -373,11 +387,11 @@ function applyLive(d, q, cnn) {
   // VIX + VIX/VIX3M (VIX trades in Cboe global hours too; the ratio uses the latest VIX3M, exactly as the server does)
   const v = sig('vix'), r = sig('vix_ratio');
   if (q.vix && v && newer(q.vix.ms, v.as_of)) {
-    setSig(v, Math.round(q.vix.last * 100) / 100, q.vix.last.toFixed(1), { as_of: fmtTime(q.vix.ms), source: 'CNBC VIX (חי)' }); v.points = ptsRule(v, q.vix.last); rebar(v); mark('CNBC', q.vix.ms);
+    setSig(v, Math.round(q.vix.last * 100) / 100, q.vix.last.toFixed(1), { as_of: fmtTime(q.vix.ms), source: 'CNBC VIX (חי)' }); setPts(v, q.vix.last); rebar(v); mark('CNBC', q.vix.ms);
     if (q.vix3m && r) {
       const ratio = q.vix.last / q.vix3m.last;
       setSig(r, Math.round(ratio * 1000) / 1000, ratio.toFixed(2), { as_of: fmtTime(Math.min(q.vix.ms, q.vix3m.ms)), note: `VIX3M ${q.vix3m.last.toFixed(1)}`, source: 'CNBC VIX, VIX3M (חי)' });
-      r.points = ptsRule(r, ratio); rebar(r);
+      setPts(r, ratio); rebar(r);
     }
   }
   // CNN Fear & Greed + put/call score
@@ -385,9 +399,9 @@ function applyLive(d, q, cnn) {
     const tms = (node) => { const t = node && node.timestamp; const ms = typeof t === 'number' ? (t > 1e11 ? t : t * 1000) : Date.parse(t); return isFinite(ms) ? ms : null; };
     const fg = cnn.fear_and_greed, pc = cnn.put_call_options, f = sig('fng'), p = sig('putcall');
     const fms = tms(fg);
-    if (fg && f && fms && isFinite(+fg.score) && newer(fms, f.as_of)) { const x = +fg.score; setSig(f, Math.round(x * 10) / 10, x.toFixed(1), { as_of: fmtTime(fms), source: 'CNN Fear & Greed (חי)' }); f.points = ptsRule(f, x); rebar(f); mark('CNN', fms); }
+    if (fg && f && fms && isFinite(+fg.score) && newer(fms, f.as_of)) { const x = +fg.score; setSig(f, Math.round(x * 10) / 10, x.toFixed(1), { as_of: fmtTime(fms), source: 'CNN Fear & Greed (חי)' }); setPts(f, x); rebar(f); mark('CNN', fms); }
     const pms = tms(pc) || fms;
-    if (pc && p && pms && isFinite(+pc.score) && newer(pms, p.as_of)) { const x = +pc.score; setSig(p, Math.round(x * 10) / 10, x.toFixed(0), { as_of: fmtTime(pms), source: 'CNN Fear & Greed (חי)' }); p.points = ptsRule(p, x); rebar(p); mark('CNN', pms); }
+    if (pc && p && pms && isFinite(+pc.score) && newer(pms, p.as_of)) { const x = +pc.score; setSig(p, Math.round(x * 10) / 10, x.toFixed(0), { as_of: fmtTime(pms), source: 'CNN Fear & Greed (חי)' }); setPts(p, x); rebar(p); mark('CNN', pms); }
   }
   // S&P 500 rows: same formulas, live price replaces the last daily close (same NY date) or is appended (new date)
   const dd = sig('spx_dd'), m2 = sig('spx_200');
@@ -397,11 +411,11 @@ function applyLive(d, q, cnn) {
     if (px >= ath) { ath = px; athDate = nyDate(q.spx.ms); }
     const ddv = (1 - px / ath) * 100, [Y, M, D] = athDate.split('-');
     setSig(dd, Math.round(ddv * 100) / 100, ddv.toFixed(2) + '%', { as_of: fmtTime(q.spx.ms), source: 'CNBC S&P 500 (חי)', note: `שיא ${Math.round(ath).toLocaleString('en-US')} (${+D}.${+M}.${Y})` });
-    dd.points = ptsRule(dd, ddv); rebar(dd); mark('CNBC', q.spx.ms);
+    setPts(dd, ddv); rebar(dd); mark('CNBC', q.spx.ms);
     if (m2 && m2.live && typeof m2.live === 'object') {
       const sma = ((same ? L.sum199_prev : L.sum199_last) + px) / 200, x = (px / sma - 1) * 100;
       setSig(m2, Math.round(-x * 100) / 100, signedPct(x), { as_of: fmtTime(q.spx.ms), source: 'CNBC S&P 500 (חי)', note: `ממוצע 200 יום: ${Math.round(sma).toLocaleString('en-US')}` });
-      m2.points = ptsRule(m2, -x); rebar(m2);
+      setPts(m2, -x); rebar(m2);
     }
   }
   // yields + info rows (display formats as in update.py)
