@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Bottom-signals updater for the GitHub Pages app.
 
-Fetches live public data, scores the 6 bottom signals (0 / 0.5 / 1 each, same rules as
+Fetches live public data, scores the 5 live bottom signals (0 / 0.5 / 1 each, same rules as
 bottom_score.py) plus 2 S&P 500 market-health rows (shown, not counted by default), and writes:
   data/latest.json   - everything the page needs
   data/history.json  - one score per US trading day (last run of the day wins)
@@ -10,6 +10,8 @@ good value is kept with its own timestamp (status "kept"); if there never was on
 is marked "na" (shown as 'אין נתון') and left out of the score. Nothing is ever guessed.
 Score = points earned / points available (signals with data) x 10, i.e. normalized to 0-10.
 The 4 low-reliability signals (NDX drawdown, NDX vs 200d, HY OAS, macro relief) were removed on 1.10.2026.
+AAII (weekly survey, collected days before publication) was removed from the score on 20.11.2026 at Marina's
+request: the score must use only live market data. It is still fetched and shown as an info-only row.
 Standard library only (no pip install needed).
 """
 import datetime, email.utils, html, json, os, re, sys, time, traceback, urllib.request
@@ -107,10 +109,13 @@ DEFS = [
          half_display='≤25', full_display='≤10', source='CNN Fear & Greed', kind='live'),
     dict(id='s5fi', label='S5FI', half=15, full=5, base=50, direction='down',
          half_display='≤15%', full_display='≤5%', source='ChartRow / חישוב עצמי', kind='live'),
-    dict(id='aaii', label='AAII דובים', half=45, full=55, base=30, direction='up',
-         half_display='45%', full_display='55%', source='AAII (שבועי)', kind='live'),
     dict(id='putcall', label='פוט/קול (CNN)', half=25, full=10, base=50, direction='down',
          half_display='≤25', full_display='≤10', source='CNN Fear & Greed', kind='live'),
+]
+# shown for information only, never counted in the score (not live: weekly survey)
+INFO_DEFS = [
+    dict(id='aaii', label='AAII דובים (שבועי — לא נספר)', half=45, full=55, base=30, direction='up',
+         half_display='45%', full_display='55%', source='AAII (סקר שבועי)', kind='live', counted=False),
 ]
 SPX_DEFS = [
     dict(id='spx_dd', label='ירידת S&P 500 מהשיא', half=10, full=20, base=0, direction='up',
@@ -212,22 +217,30 @@ def f_putcall():
     return dict(value=round(v, 1), display=f'{v:.0f}', points=pts(v, 25, 10), as_of=cnn_time(d, cnn_time(cnn()['fear_and_greed'], iso(now_utc()))))
 
 def f_s5fi():
-    """1) ChartRow public breadth page (% of S&P 500 members above 50-day MA, EOD).
-       2) fallback: compute it ourselves from Yahoo closes of the Wikipedia constituents list."""
+    """1) compute it ourselves from Yahoo daily bars of the Wikipedia constituents list; during US hours the last
+          bar is today's live (intraday) price, so the value is current as of this run (~every 30 min).
+       2) fallback: ChartRow public breadth page (% of S&P 500 members above 50-day MA, end of day only)."""
     try:
-        page = get('https://chartrow.com/sp500/market-breadth', H_WEB, tries=2)
-        t = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', re.sub(r'(?s)<script.*?</script>|<style.*?</style>', ' ', page))))
-        m = re.search(r'Above 50-day MA\s*([\d.]+)%\s*(\d+) of (\d+) eligible', t)
-        dm = re.search(r'as of market close,? (\w+ \d{1,2}, \d{4})', t)
-        if not m or not dm: raise ValueError('ChartRow: pattern not found')
-        d = datetime.datetime.strptime(dm.group(1), '%b %d, %Y').date()
-        if (datetime.datetime.now(NY).date() - d).days > 5: raise ValueError(f'ChartRow: stale ({d})')
-        v = int(m.group(2)) / int(m.group(3)) * 100
-        return dict(value=round(v, 1), display=f'{v:.0f}%', points=pts(v, 15, 5), as_of=iso_date_ny(d),
-                    source='ChartRow — אחוז מניות S&P 500 מעל ממוצע 50 יום', kind='live', date_only=True,
-                    note=f'{m.group(2)} מתוך {m.group(3)} מניות')
+        return s5fi_compute()
     except Exception as e:
-        log('S5FI ChartRow failed -> computing:', repr(e))
+        log('S5FI compute failed -> ChartRow:', repr(e))
+    page = get('https://chartrow.com/sp500/market-breadth', H_WEB, tries=2)
+    t = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', re.sub(r'(?s)<script.*?</script>|<style.*?</style>', ' ', page))))
+    m = re.search(r'Above 50-day MA\s*([\d.]+)%\s*(\d+) of (\d+) eligible', t)
+    dm = re.search(r'as of market close,? (\w+ \d{1,2}, \d{4})', t)
+    if not m or not dm: raise ValueError('ChartRow: pattern not found')
+    d = datetime.datetime.strptime(dm.group(1), '%b %d, %Y').date()
+    if (datetime.datetime.now(NY).date() - d).days > 5: raise ValueError(f'ChartRow: stale ({d})')
+    v = int(m.group(2)) / int(m.group(3)) * 100
+    return dict(value=round(v, 1), display=f'{v:.0f}%', points=pts(v, 15, 5), as_of=iso_date_ny(d),
+                source='ChartRow — אחוז מניות S&P 500 מעל ממוצע 50 יום', kind='live', date_only=True,
+                note=f'{m.group(2)} מתוך {m.group(3)} מניות')
+
+def is_us_session():
+    n = datetime.datetime.now(NY)
+    return n.weekday() < 5 and datetime.time(9, 30) <= n.time() <= datetime.time(16, 15)
+
+def s5fi_compute():
     page = get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies', {'User-Agent': 'bottom-signals-app/1.0 (GitHub Actions)'})
     table = page.split('id="constituents"', 1)[1].split('</table>', 1)[0]
     syms = sorted({re.sub(r'<[^>]+>', '', r).strip().replace('.', '-') for r in re.findall(r'<tr[^>]*>\s*<td[^>]*>(.*?)</td>', table, re.S)})
@@ -243,9 +256,11 @@ def f_s5fi():
     if len(res) < 450: raise ValueError(f'only {len(res)} constituents priced')
     last = max(d for _, d in res); above = sum(1 for a, _ in res if a)
     v = above / len(res) * 100
-    return dict(value=round(v, 1), display=f'{v:.0f}%', points=pts(v, 15, 5), as_of=iso_date_ny(last) if last < datetime.datetime.now(NY).date() else iso(now_utc()),
-                source='אחוז מניות S&P 500 מעל ממוצע 50 יום — חישוב עצמי מ־Yahoo ורשימת ויקיפדיה', kind='computed', date_only=False,
-                note=f'מחושב · {above} מתוך {len(res)} מניות')
+    intraday = last >= datetime.datetime.now(NY).date() and is_us_session()
+    when = 'מחושב ממחירים תוך-יומיים · מתעדכן כל כ־30 דקות' if intraday else f'מחושב לפי סגירת {last.day}.{last.month}'
+    return dict(value=round(v, 1), display=f'{v:.0f}%', points=pts(v, 15, 5), as_of=iso(now_utc()) if intraday else iso_date_ny(last),
+                source='אחוז מניות S&P 500 מעל ממוצע 50 יום — חישוב עצמי מ־Yahoo ורשימת ויקיפדיה', kind='computed', date_only=not intraday,
+                note=f'{when} · {above} מתוך {len(res)} מניות')
 
 def f_aaii():
     feed = get('https://insights.aaii.com/feed', H_WEB)
@@ -374,11 +389,12 @@ def main():
     cfg = load_json(os.path.join(ROOT, 'config.json'), {})
     count_spx = bool(cfg.get('count_spx_in_score', False))
     old = load_json(os.path.join(DATA, 'latest.json'), {})
-    prev = {s['id']: s for s in old.get('signals', []) + old.get('spx_signals', []) + old.get('yields', []) + old.get('info', [])}
+    prev = {s['id']: s for s in old.get('signals', []) + old.get('spx_signals', []) + old.get('yields', []) + old.get('info', []) + old.get('info_signals', [])}
     started = now_utc(); fetched_at = iso(started)
 
     signals = [run_signal(d, prev, fetched_at) for d in DEFS]
     spx = [run_signal(d, prev, fetched_at) for d in SPX_DEFS]
+    info_signals = [run_signal(d, prev, fetched_at) for d in INFO_DEFS]  # shown only, never scored
     yields = [dict(run_quote('y10', '%5ETNX', 'תשואת 10 שנים', lambda v: f'{v:.2f}%', prev, fetched_at), line=YIELD_LINES['10y']),
               dict(run_quote('y30', '%5ETYX', 'תשואת 30 שנים', lambda v: f'{v:.2f}%', prev, fetched_at), line=YIELD_LINES['30y'])]
     for y in yields:
@@ -406,7 +422,7 @@ def main():
         'tier_index': tier_i, 'tier': TIERS[tier_i][1],
         'missing': [s['id'] for s in signals + spx if s['status'] == 'na'],
         'kept': [s['id'] for s in signals + spx if s['status'] == 'kept'],
-        'signals': signals, 'spx_signals': spx, 'yields': yields, 'info': info,
+        'signals': signals, 'spx_signals': spx, 'info_signals': info_signals, 'yields': yields, 'info': info,
         'full_buy_threshold': cfg.get('full_buy_threshold'),
         'full_buy_threshold_note': cfg.get('full_buy_threshold_note'),
         'log': LOG[-30:],
@@ -419,7 +435,7 @@ def main():
     day = (datetime.datetime.fromisoformat(market_time.replace('Z', '+00:00')).astimezone(NY).date()
            if market_time else datetime.datetime.now(NY).date()).isoformat()
     entry = {'d': day, 'score': total, 'core': core_norm, 'with_spx': with_spx, 'pts': core, 'avail': len(avail),
-             'spx': spx_pts, 'tier': tier_i, 'missing': len(out['missing']), 't': fetched_at, 'v': 6}
+             'spx': spx_pts, 'tier': tier_i, 'missing': len(out['missing']), 't': fetched_at, 'v': 7}
     hist = [h for h in hist if h.get('d') != day] + [entry]
     hist.sort(key=lambda h: h['d'])
     with open(hist_path, 'w', encoding='utf-8') as f:
@@ -427,7 +443,7 @@ def main():
 
     print(f'score {total:g}/10 ({TIERS[tier_i][1]}) | points {core:g}/{len(avail)} available of {len(signals)} | S&P rows {spx_pts:g} | '
           f'missing {out["missing"]} | kept {out["kept"]}')
-    for s in signals + spx:
+    for s in signals + spx + info_signals:
         print(f'  {s["points"]:>3}  {s["id"]:<10} {s["display"]:<10} {s["status"]}')
     for y in yields + info:
         print(f'       {y["id"]:<10} {y.get("display")} {y.get("status")}')

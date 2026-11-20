@@ -139,3 +139,7 @@ h1{font-size:26px;font-weight:800;line-height:1.15}
 
 /* prominent "not advice" line under the gauge */
 .nadv{max-width:440px;margin:8px auto 4px;padding:8px 12px;border-radius:10px;background:rgba(47,128,237,.16);border:1px solid #2f80ed;color:#7fb3ff;font-weight:700;font-size:14px;text-align:center}
+
+.row.infoonly{opacity:.72}
+.row.infoonly .dot{display:none}
+.infonote{font-size:12px;color:#8a94a6;margin:-6px 0 10px;line-height:1.5}

@@ -6,9 +6,10 @@ const TIERS = [ // [from, to(excl), name, color, range label]
   [5, 7, 'פחד אמיתי — אזור הזדמנות', '#f2994a', '5–6.9'],
   [7, 999, 'כניעה', '#27ae60', '7–10'],
 ];
-// The 6 scored signals (NDX drawdown, NDX vs 200d, HY OAS and macro relief were removed on 1.10.2026).
+// The 5 scored LIVE signals (NDX drawdown, NDX vs 200d, HY OAS and macro relief were removed on 1.10.2026;
+// AAII, a weekly survey collected days earlier, was removed from the score on 20.11.2026 and is shown as info only).
 // Score = points earned / points available (signals with data) x 10.
-const SCORED = ['vix', 'vix_ratio', 'fng', 's5fi', 'aaii', 'putcall'];
+const SCORED = ['vix', 'vix_ratio', 'fng', 's5fi', 'putcall'];
 const hasData = (s) => s && s.status !== 'na' && s.value != null;
 function normScore(list) {
   const av = list.filter(hasData), pts = av.reduce((a, s) => a + (s.points || 0), 0);
@@ -184,7 +185,7 @@ function renderRank(st, byId) {
   const b = st.baseline || {};
   $('rankbase').innerHTML = `לפי בדיקה היסטורית על <bdi dir="ltr">${st.big_drops}</bdi> ירידות של <bdi dir="ltr">15%+</bdi> בנאסד״ק <bdi dir="ltr">100</bdi> מאז <bdi dir="ltr">2000</bdi>, כשהסימן בנקודה מלאה. התג בצד = המצב עכשיו. ` +
     `<span class="rbl">לשם השוואה, יום אקראי: <b><bdi dir="ltr">${b.pct_pos_1y}%</bdi></b> חיובי אחרי שנה · חציון <b><bdi dir="ltr">+${b.median_1y}%</bdi></b> (<bdi dir="ltr">QQQ</bdi>)</span>`;
-  $('rank').innerHTML = st.signals.filter((r) => SCORED.includes(r.id)).slice().sort((a, c) => a.rank - c.rank).map((r) => rankHTML(r, byId[r.id])).join('');
+  $('rank').innerHTML = st.signals.filter((r) => SCORED.includes(r.id)).slice().sort((a, c) => a.rank - c.rank).map((r, i) => rankHTML({ ...r, rank: i + 1 }, byId[r.id])).join('');
   $('ranknote').innerHTML = '<b>מגבלות הנתונים:</b> בפועל יש רק כ־<bdi dir="ltr">11</bdi> אירועים, והימים הדלוקים סמוכים זה לזה — כלומר המדגם קטן. ' +
     'ל־<bdi dir="ltr">VIX/VIX3M</bdi> יש נתונים רק מ־<bdi dir="ltr">2006</bdi>, ולפחד וחמדנות רק מ־<bdi dir="ltr">2011</bdi>. ' +
     'ההיסטוריה של <bdi dir="ltr">S5FI</bdi> משוחזרת ממניות המדד של היום, ולכן היא מקורבת ואופטימית. ' +
@@ -252,7 +253,9 @@ function render(d, cfg, hist, stats) {
   const rk = Object.fromEntries(((stats && stats.signals) || []).map((r) => [r.id, r.rank]));
   const ordered = sigs.map((s, i) => ({ s, n: rk[s.id] ?? 100 + i })).sort((a, b) => a.n - b.n);
   const ranked = ordered.every((o) => o.n < 100);
-  $('rows').innerHTML = ordered.map((o, i) => rowHTML(o.s, ranked ? o.n : i + 1)).join('');
+  $('rows').innerHTML = ordered.map((o, i) => rowHTML(o.s, i + 1)).join('') +
+    (d.info_signals || []).map((s) => rowHTML(s, '•', 'infoonly') +
+      `<div class="infonote">סקר שבועי של משקיעים פרטיים, שנאסף בימים שלפני הפרסום — לא משקף את השוק ברגע זה, ולכן <b>לא נספר בציון</b>.</div>`).join('');
   $('spxnote').textContent = countSpx ? '(נספר בציון)' : '(לא נספר בציון)';
   $('spxrows').innerHTML = (d.spx_signals || []).map((s, i) => rowHTML(s, countSpx ? sigs.length + 1 + i : '•', 'spx')).join('');
 
@@ -277,10 +280,10 @@ function render(d, cfg, hist, stats) {
   else { note.className = 'note'; note.innerHTML = `סף הקנייה המלאה ב־<bdi dir="ltr">QQQ</bdi>: ציון <bdi dir="ltr">${thr}/10</bdi> ומעלה` + tn; }
 
   const h = Array.isArray(hist) ? hist : [];
-  // v6 entries hold the normalized 6-signal score; older entries (10-signal raw score) are not comparable and are skipped
-  const h6 = h.filter((x) => x.v === 6);
+  // v7 = 5 live signals (no AAII). Entries before 20.11.2026 were recomputed without AAII from the stored per-run data.
+  const h6 = h.filter((x) => x.v === 7);
   const hs = h6.map((x) => ({ ...x, score: countSpx ? (x.with_spx ?? x.score) : (x.core ?? x.score) }));
-  $('hist').innerHTML = histSVG(hs, max) + `<div class="hn">${hs.length <= 1 ? 'ההיסטוריה מתחילה עכשיו — נשמרת נקודה אחת לכל יום מסחר.' : `${hs.length} ימי מסחר · ימין = הישן, שמאל = החדש`}</div>`;
+  $('hist').innerHTML = histSVG(hs, max) + `<div class="hn">${hs.length <= 1 ? 'ההיסטוריה מתחילה עכשיו — נשמרת נקודה אחת לכל יום מסחר.' : `${hs.length} ימי מסחר · ימין = הישן, שמאל = החדש · חושב לאחור בלי <bdi dir="ltr">AAII</bdi>`}</div>`;
 }
 
 // ---------------------------------------------------------------- quarterly momentum heatmap (updated after each completed month; current quarter shown to date)

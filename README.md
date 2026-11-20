@@ -1,11 +1,15 @@
 # מד סימני תחתית — bottom-signals
 
-Phone-friendly Hebrew dashboard (static site on GitHub Pages) that scores 6 "market bottom" signals
+Phone-friendly Hebrew dashboard (static site on GitHub Pages) that scores 5 live "market bottom" signals
 (0 / 0.5 / 1 point each) plus 2 S&P 500 market-health rows, and refreshes itself via GitHub Actions.
 
 Score = points earned / points available (signals that have data) × 10, shown as X/10.
 Signals: VIX (28/35), VIX/VIX3M (1.00/1.10), CNN Fear & Greed (≤25/≤10), S5FI (≤15%/≤5%),
-AAII bears (≥45%/≥55%, or bull-bear spread ≤−15/≤−30), CNN put/call sub-score (≤25/≤10).
+CNN put/call sub-score (≤25/≤10).
+On 20.11.2026 AAII bears (weekly survey) was removed from the score — the score uses only live market data.
+AAII is still shown as an info-only row (`info_signals` in latest.json). history.json entries were recomputed
+without AAII from the per-run latest.json snapshots in git (v=7, `recomputed: no-aaii`). S5FI is self-computed
+from Yahoo intraday daily bars every Action run (~30 min); ChartRow (EOD) is only a fallback.
 On 1.10.2026 the 4 low-reliability signals were removed: NDX drawdown from high, NDX below 200d SMA,
 HY OAS (junk spread) and macro relief (10Y / dollar). Older history points (10-signal raw score) are not drawn.
 
