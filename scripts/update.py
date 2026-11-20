@@ -20,7 +20,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, 'data')
 UTC, NY = datetime.timezone.utc, ZoneInfo('America/New_York')
 YIELD_LINES = {'10y': 5.25, '30y': 5.5}  # FIXED by Marina - never change these warning lines
-TIERS = [(3, 'אין פחד עדיין'), (5, 'פחד מצטבר — להתכונן'), (7, 'פחד אמיתי — אזור קנייה'), (999, 'כניעה')]
+TIERS = [(3, 'אין פחד עדיין'), (5, 'פחד מצטבר — להתכונן'), (7, 'פחד אמיתי — אזור הזדמנות'), (999, 'כניעה')]
 BROWSER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36'
 H_CNN = {'User-Agent': BROWSER, 'Referer': 'https://www.cnn.com/', 'Accept': 'application/json, text/plain, */*'}
 H_WEB = {'User-Agent': BROWSER, 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'}

@@ -3,7 +3,7 @@ const TZ = 'Asia/Jerusalem';
 const TIERS = [ // [from, to(excl), name, color, range label]
   [0, 3, 'אין פחד עדיין', '#8a94a6', '0–2.9'],
   [3, 5, 'פחד מצטבר — להתכונן', '#f2c94c', '3–4.9'],
-  [5, 7, 'פחד אמיתי — אזור קנייה', '#f2994a', '5–6.9'],
+  [5, 7, 'פחד אמיתי — אזור הזדמנות', '#f2994a', '5–6.9'],
   [7, 999, 'כניעה', '#27ae60', '7–10'],
 ];
 // The 6 scored signals (NDX drawdown, NDX vs 200d, HY OAS and macro relief were removed on 1.10.2026).
