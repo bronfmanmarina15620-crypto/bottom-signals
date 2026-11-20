@@ -271,10 +271,9 @@ HE_MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'י
 def month_end(y, m):
     return (datetime.date(y + (m == 12), m % 12 + 1, 1) - datetime.timedelta(days=1)) if m else datetime.date(y - 1, 12, 31)
 
-def last_completed_quarter(today=None):
+def last_completed_month(today=None):
     today = today or datetime.datetime.now(NY).date()
-    q = (today.month - 1) // 3  # quarters fully completed this year (0..3)
-    return (today.year, q) if q else (today.year - 1, 4)
+    return (today.year, today.month - 1) if today.month > 1 else (today.year - 1, 12)
 
 def close_on_or_before(y, d, sym):
     best = None
@@ -286,14 +285,17 @@ def close_on_or_before(y, d, sym):
     return best
 
 def update_quarterly(force=False):
+    # Recomputed whenever a new calendar MONTH has completed. The current quarter is shown "to date"
+    # (through the end of the last completed month) and flagged with 'partial_q'.
     path = os.path.join(DATA, 'quarterly.json')
-    year, q = last_completed_quarter()
-    label = f'Q{q} {year}'
+    year, m = last_completed_month()
+    label = f'{year}-{m:02d}'
     old = load_json(path, {})
     if not force and old.get('as_of') == label:
         print(f'quarterly: up to date ({label}) - untouched'); return False
-    q_end = [month_end(year, 3 * i) for i in range(0, 5)]  # [prior-year end, Q1 end, Q2 end, Q3 end, Q4 end]
-    m = 3 * q
+    q = (m - 1) // 3 + 1  # quarter containing the last completed month
+    partial = (m % 3 != 0)
+    q_end = [month_end(year, 0)] + [month_end(year, min(3 * i, m)) for i in range(1, q + 1)]
     rows = []
     for tid, sym, name in Q_ROWS:
         y = yahoo(sym, '2y')
@@ -309,7 +311,8 @@ def update_quarterly(force=False):
                      'closes': {'prior_year_end': [base[0].isoformat(), round(base[1], 4)],
                                 'quarter_ends': [[e[0].isoformat(), round(e[1], 4)] for e in ends],
                                 'prior_month_end': [prev_m[0].isoformat(), round(prev_m[1], 4)]}})
-    out = {'as_of': label, 'year': year, 'quarter': q, 'period_end': q_end[q].isoformat(),
+    out = {'as_of': label, 'year': year, 'quarter': q, 'partial_q': q if partial else None,
+           'period_end': month_end(year, m).isoformat(),
            'month': {'num': m, 'label': f'{HE_MONTHS[m - 1]} {year}'},
            'method': 'close-to-close % price change (Yahoo Finance chart API, unadjusted for dividends)',
            'generated_at': iso(now_utc()), 'rows': rows}

@@ -282,7 +282,7 @@ function render(d, cfg, hist, stats) {
   $('hist').innerHTML = histSVG(hs, max) + `<div class="hn">${hs.length <= 1 ? 'ההיסטוריה מתחילה עכשיו — נשמרת נקודה אחת לכל יום מסחר.' : `${hs.length} ימי מסחר · ימין = הישן, שמאל = החדש`}</div>`;
 }
 
-// ---------------------------------------------------------------- quarterly momentum heatmap (static, updated at quarter end)
+// ---------------------------------------------------------------- quarterly momentum heatmap (updated after each completed month; current quarter shown to date)
 function qCell(v, colMax) {
   if (v == null) return '<td class="qc qf">—</td>';
   const a = Math.abs(v), sign = v > 0 ? '+' : v < 0 ? '−' : '';
@@ -297,14 +297,14 @@ function renderQuarterly(q) {
   if (!q || !Array.isArray(q.rows) || !q.rows.length) { sec.hidden = true; return; }
   const rows = q.rows;
   const cols = [['ytd', 'מתחילת השנה', (r) => r.ytd]]
-    .concat([0, 1, 2, 3].map((i) => [`q${i + 1}`, `רבעון ${i + 1}`, (r) => (r.q || [])[i]]))
+    .concat([0, 1, 2, 3].map((i) => [`q${i + 1}`, q.partial_q === i + 1 ? `רבעון ${i + 1} (עד כה)` : `רבעון ${i + 1}`, (r) => (r.q || [])[i]]))
     .concat([['m', (q.month && q.month.label) || 'חודש אחרון', (r) => r.month]]);
   const head = '<thead><tr><th class="qn"></th>' + cols.map(([, t]) => `<th>${bidi(t)}</th>`).join('') + '</tr></thead>';
   const maxes = cols.map(([, , g]) => Math.max(0, ...rows.map(g).filter((v) => v != null).map(Math.abs)));
   const body = '<tbody>' + rows.map((r) => `<tr><th class="qn" aria-label="${esc(r.label)}">${bidi(r.name || r.label)}${r.id ? ` <span class="qtk"><bdi dir="ltr">(${esc(r.id)})</bdi></span>` : ''}</th>` +
     cols.map(([, , g], i) => qCell(g(r), maxes[i])).join('') + '</tr>').join('') + '</tbody>';
   $('qtable').innerHTML = head + body;
-  $('qasof').innerHTML = `מעודכן לסוף רבעון <bdi dir="ltr">${esc(q.quarter)}</bdi> <bdi dir="ltr">${esc(q.year)}</bdi>`;
+  $('qasof').innerHTML = `מעודכן לסוף ${bidi((q.month && q.month.label) || '')} · מתעדכן אחרי כל חודש שמסתיים`;
   sec.hidden = false;
 }
 
