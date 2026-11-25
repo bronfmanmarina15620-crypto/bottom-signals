@@ -9,8 +9,8 @@
   "label": "נובמבר (עד כה)"
  },
  "method": "completed quarters: close-to-close; ytd / current quarter / current month: base close -> live price (CNBC, Yahoo fallback); price only, not dividend-adjusted",
- "live_as_of": "2026-11-24T22:15:59Z",
- "generated_at": "2026-11-25T14:28:41Z",
+ "live_as_of": "2026-11-25T14:58:43Z",
+ "generated_at": "2026-11-25T14:58:51Z",
  "rows": [
   {
    "id": "NDX",
@@ -22,7 +22,7 @@
     -5.9789,
     27.532,
     0.4365,
-    -13.7933
+    -16.6042
    ],
    "bases": {
     "ytd": [
@@ -52,11 +52,11 @@
      30408.5
     ]
    ],
-   "ytd": 3.8191,
-   "month": -7.6473,
-   "live_px": 26214.1699,
-   "live_as_of": "2026-11-24T22:15:59Z",
-   "live_src": "Yahoo"
+   "ytd": 0.4339,
+   "month": -10.6586,
+   "live_px": 25359.414,
+   "live_as_of": "2026-11-25T14:58:43Z",
+   "live_src": "CNBC"
   },
   {
    "id": "SPX",
@@ -68,7 +68,7 @@
     -4.6305,
     14.8707,
     2.0292,
-    -5.8871
+    -7.9657
    ],
    "bases": {
     "ytd": [
@@ -98,11 +98,11 @@
      7651.54
     ]
    ],
-   "ytd": 5.1945,
-   "month": -4.9997,
-   "live_px": 7201.0898,
-   "live_as_of": "2026-11-24T21:54:10Z",
-   "live_src": "Yahoo"
+   "ytd": 2.8711,
+   "month": -7.098,
+   "live_px": 7042.04,
+   "live_as_of": "2026-11-25T14:58:43Z",
+   "live_src": "CNBC"
   },
   {
    "id": "INDU",
@@ -114,7 +114,7 @@
     -3.5823,
     12.8992,
     -2.701,
-    -1.7431
+    -3.2481
    ],
    "bases": {
     "ytd": [
@@ -144,11 +144,11 @@
      50906.0508
     ]
    ],
-   "ytd": 4.0684,
-   "month": -3.3834,
-   "live_px": 50018.6992,
-   "live_as_of": "2026-11-24T21:54:25Z",
-   "live_src": "Yahoo"
+   "ytd": 2.4744,
+   "month": -4.8633,
+   "live_px": 49252.55,
+   "live_as_of": "2026-11-25T14:58:43Z",
+   "live_src": "CNBC"
   },
   {
    "id": "RSP",
@@ -160,7 +160,7 @@
     0.1879,
     10.8639,
     -2.2325,
-    2.8555
+    1.7354
    ],
    "bases": {
     "ytd": [
@@ -190,11 +190,11 @@
      208.02
     ]
    ],
-   "ytd": 11.6935,
-   "month": -1.9926,
-   "live_px": 213.96,
-   "live_as_of": "2026-11-24T21:00:00Z",
-   "live_src": "Yahoo"
+   "ytd": 10.4771,
+   "month": -3.0599,
+   "live_px": 211.63,
+   "live_as_of": "2026-11-25T14:58:43Z",
+   "live_src": "CNBC"
   },
   {
    "id": "IWM",
@@ -206,7 +206,7 @@
     0.7475,
     21.1492,
     -7.5087,
-    -3.8684
+    -5.5921
    ],
    "bases": {
     "ytd": [
@@ -236,11 +236,11 @@
      277.89
     ]
    ],
-   "ytd": 8.5229,
-   "month": -4.364,
-   "live_px": 267.14,
-   "live_as_of": "2026-11-24T21:00:00Z",
-   "live_src": "Yahoo"
+   "ytd": 6.577,
+   "month": -6.0788,
+   "live_px": 262.35,
+   "live_as_of": "2026-11-25T14:58:43Z",
+   "live_src": "CNBC"
   }
  ]
 }
