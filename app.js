@@ -504,7 +504,8 @@ if ('serviceWorker' in navigator) {
 // Admin-mode opens are not counted, so Marina does not inflate the numbers.
 const VISIT_HASH = '6373e6b4be26e5f5e8214a21db68848ce3abbf32527ff2ff7748af855605b843';
 const VISIT_NS = 'mbrbs-f662a323';
-const VISIT_API = 'https://abacus.jasoncameron.dev';
+// Abacus (abacus.jasoncameron.dev) proved unreliable (timeouts / 500s), so we use CountAPI-compatible host.
+const VISIT_API = 'https://countapi.mileshilliard.com/api/v1';
 const LS_ADMIN = 'bsAdmin';
 const LS_DEVDAY = 'bsDevDay';
 
@@ -525,18 +526,23 @@ function last7IsraelDates() {
   }
   return out;
 }
-async function abacusCall(kind, key) {
-  const c = new AbortController(); const t = setTimeout(() => c.abort(), 6000);
-  try {
-    const r = await fetch(`${VISIT_API}/${kind}/${VISIT_NS}/${encodeURIComponent(key)}`, { cache: 'no-store', referrerPolicy: 'no-referrer', signal: c.signal });
-    if (r.status === 404) return 0;
-    if (!r.ok) throw new Error(r.status);
-    const j = await r.json();
-    return Number(j && j.value) || 0;
-  } finally { clearTimeout(t); }
+async function counterCall(kind, key, tries = 2) {
+  const url = `${VISIT_API}/${kind}/${VISIT_NS}-${encodeURIComponent(key)}`;
+  let lastErr;
+  for (let i = 0; i < tries; i++) {
+    const c = new AbortController(); const t = setTimeout(() => c.abort(), 8000);
+    try {
+      const r = await fetch(url, { cache: 'no-store', referrerPolicy: 'no-referrer', signal: c.signal });
+      if (r.status === 404) return 0;
+      if (!r.ok) throw new Error(r.status);
+      const j = await r.json();
+      return Number(j && j.value) || 0;
+    } catch (e) { lastErr = e; } finally { clearTimeout(t); }
+  }
+  throw lastErr;
 }
-const abacusGet = (key) => abacusCall('get', key);
-const abacusHit = (key) => abacusCall('hit', key);
+const abacusGet = (key) => counterCall('get', key);
+const abacusHit = (key) => counterCall('hit', key, 1);
 
 async function unlockAdmin() {
   try {
@@ -570,24 +576,58 @@ function showVisits(opens, devices, week) {
   const el = $('visits');
   if (!el) return;
   el.hidden = false;
-  el.textContent = `כניסות היום: ${opens} · מכשירים היום: ${devices} · השבוע: ${week}`;
+  el.textContent = `👁 סופר כניסות — היום: ${opens} כניסות · ${devices} מכשירים · 7 ימים: ${week}`;
 }
+function showVisitsMsg(msg) {
+  const el = $('visits');
+  if (!el) return;
+  el.hidden = false;
+  el.textContent = msg;
+}
+
+async function loadAdminVisits() {
+  showVisitsMsg('👁 סופר כניסות: טוען…');
+  try {
+    const days = last7IsraelDates();
+    const today = days[0];
+    const [opens, devices] = await Promise.all([abacusGet('o-' + today), abacusGet('d-' + today)]);
+    const rest = await Promise.all(days.slice(1).map((d) => abacusGet('o-' + d).catch(() => 0)));
+    const week = [opens, ...rest].reduce((a, b) => a + (Number(b) || 0), 0);
+    showVisits(opens, devices, week);
+  } catch (e) {
+    showVisitsMsg('👁 סופר כניסות לא זמין כרגע (לחצי ↻ לנסות שוב)');
+  }
+}
+
+// Home-screen apps on iPhone keep separate storage from Safari, so the ?admin link opened in
+// Safari does not unlock the installed app. Hidden fallback: tap the title 5 times quickly and paste the code.
+(function adminTapUnlock() {
+  const h = document.querySelector('.hdr h1');
+  if (!h) return;
+  let n = 0, t0 = 0;
+  h.addEventListener('click', async () => {
+    const now = Date.now();
+    if (now - t0 > 3000) { n = 0; t0 = now; }
+    if (++n < 5) return;
+    n = 0;
+    const tok = (prompt('קוד ניהול:') || '').trim().replace(/^.*[?&]admin=/, '');
+    if (tok && await sha256hex(tok) === VISIT_HASH) {
+      try { localStorage.setItem(LS_ADMIN, '1'); } catch (e) {}
+      loadAdminVisits();
+    }
+  });
+})();
 
 (function initVisits() {
   Promise.resolve().then(async () => {
     const admin = await unlockAdmin();
-    const days = last7IsraelDates();
-    const today = days[0];
-    let opens, devices;
     if (admin) {
-      [opens, devices] = await Promise.all([abacusGet('o-' + today), abacusGet('d-' + today)]);
-    } else {
-      const r = await recordPublicVisit(today);
-      opens = r.opens; devices = r.devices;
+      await loadAdminVisits();
+      const rb = $('refresh');
+      if (rb) rb.addEventListener('click', () => loadAdminVisits());
+      return;
     }
-    const rest = await Promise.all(days.slice(1).map((d) => abacusGet('o-' + d).catch(() => 0)));
-    const week = [opens, ...rest].reduce((a, b) => a + (Number(b) || 0), 0);
-    if (admin) showVisits(opens, devices, week);
+    await recordPublicVisit(last7IsraelDates()[0]);
   }).catch(() => {});
 })();
 
