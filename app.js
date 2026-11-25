@@ -496,4 +496,99 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadCtrl && !reloaded) { reloaded = true; location.reload(); } });
   addEventListener('load', () => navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((r) => r.update()).catch(() => {}));
 }
+
+// ---------------------------------------------------------------- private visit counter (admin only)
+// Counts every public open. The line is shown only after unlocking with ?admin=<token>
+// (token itself is not stored; only its SHA-256 hash is in this file). After unlock,
+// a localStorage flag keeps the line visible on the normal URL and the home-screen icon.
+// Admin-mode opens are not counted, so Marina does not inflate the numbers.
+const VISIT_HASH = '6373e6b4be26e5f5e8214a21db68848ce3abbf32527ff2ff7748af855605b843';
+const VISIT_NS = 'mbrbs-f662a323';
+const VISIT_API = 'https://abacus.jasoncameron.dev';
+const LS_ADMIN = 'bsAdmin';
+const LS_DEVDAY = 'bsDevDay';
+
+async function sha256hex(s) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+function israelYMD(ms) {
+  const p = parts(new Date(ms), { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
+  return `${p.year}-${p.month}-${p.day}`;
+}
+function last7IsraelDates() {
+  const out = []; let t = Date.now(); let last = null;
+  while (out.length < 7 && t > Date.now() - 20 * 864e5) {
+    const ymd = israelYMD(t);
+    if (ymd !== last) { out.push(ymd); last = ymd; }
+    t -= 3600e3;
+  }
+  return out;
+}
+async function abacusCall(kind, key) {
+  const c = new AbortController(); const t = setTimeout(() => c.abort(), 6000);
+  try {
+    const r = await fetch(`${VISIT_API}/${kind}/${VISIT_NS}/${encodeURIComponent(key)}`, { cache: 'no-store', referrerPolicy: 'no-referrer', signal: c.signal });
+    if (r.status === 404) return 0;
+    if (!r.ok) throw new Error(r.status);
+    const j = await r.json();
+    return Number(j && j.value) || 0;
+  } finally { clearTimeout(t); }
+}
+const abacusGet = (key) => abacusCall('get', key);
+const abacusHit = (key) => abacusCall('hit', key);
+
+async function unlockAdmin() {
+  try {
+    const u = new URL(location.href);
+    const tok = u.searchParams.get('admin');
+    if (tok && await sha256hex(tok) === VISIT_HASH) {
+      localStorage.setItem(LS_ADMIN, '1');
+      u.searchParams.delete('admin');
+      const q = u.searchParams.toString();
+      history.replaceState({}, '', u.pathname + (q ? '?' + q : '') + u.hash);
+    }
+  } catch (e) { /* ignore */ }
+  try { return localStorage.getItem(LS_ADMIN) === '1'; } catch (e) { return false; }
+}
+
+async function recordPublicVisit(today) {
+  const opens = await abacusHit('o-' + today);
+  let already = false;
+  try { already = localStorage.getItem(LS_DEVDAY) === today; } catch (e) {}
+  let devices;
+  if (!already) {
+    devices = await abacusHit('d-' + today);
+    try { localStorage.setItem(LS_DEVDAY, today); } catch (e) {}
+  } else {
+    devices = await abacusGet('d-' + today);
+  }
+  return { opens, devices };
+}
+
+function showVisits(opens, devices, week) {
+  const el = $('visits');
+  if (!el) return;
+  el.hidden = false;
+  el.textContent = `כניסות היום: ${opens} · מכשירים היום: ${devices} · השבוע: ${week}`;
+}
+
+(function initVisits() {
+  Promise.resolve().then(async () => {
+    const admin = await unlockAdmin();
+    const days = last7IsraelDates();
+    const today = days[0];
+    let opens, devices;
+    if (admin) {
+      [opens, devices] = await Promise.all([abacusGet('o-' + today), abacusGet('d-' + today)]);
+    } else {
+      const r = await recordPublicVisit(today);
+      opens = r.opens; devices = r.devices;
+    }
+    const rest = await Promise.all(days.slice(1).map((d) => abacusGet('o-' + d).catch(() => 0)));
+    const week = [opens, ...rest].reduce((a, b) => a + (Number(b) || 0), 0);
+    if (admin) showVisits(opens, devices, week);
+  }).catch(() => {});
+})();
+
 load();
