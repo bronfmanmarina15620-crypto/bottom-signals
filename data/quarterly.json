@@ -10,7 +10,7 @@
  },
  "method": "completed quarters: close-to-close; ytd / current quarter / current month: base close -> live price (CNBC, Yahoo fallback); price only, not dividend-adjusted",
  "live_as_of": "2026-11-25T21:00:00Z",
- "generated_at": "2026-11-27T07:48:39Z",
+ "generated_at": "2026-11-27T08:55:09Z",
  "rows": [
   {
    "id": "NDX",
@@ -193,7 +193,7 @@
    "ytd": 12.6227,
    "month": -1.1772,
    "live_px": 215.74,
-   "live_as_of": "2026-11-24T21:00:00Z",
+   "live_as_of": "2026-11-25T21:00:00Z",
    "live_src": "CNBC"
   },
   {
@@ -239,7 +239,7 @@
    "ytd": 9.2257,
    "month": -3.7447,
    "live_px": 268.87,
-   "live_as_of": "2026-11-24T21:00:00Z",
+   "live_as_of": "2026-11-25T21:00:00Z",
    "live_src": "CNBC"
   }
  ]
