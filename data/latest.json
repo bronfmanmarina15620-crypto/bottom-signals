@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-27T03:40:35Z",
+ "generated_at": "2026-11-27T04:52:58Z",
  "market_time": "2026-11-25T21:00:00Z",
  "score": 6.5,
  "score_max": 10,
@@ -32,7 +32,7 @@
    "points": 0.6435,
    "as_of": "2026-11-26T16:30:00Z",
    "status": "live",
-   "fetched_at": "2026-11-27T03:40:35Z",
+   "fetched_at": "2026-11-27T04:52:58Z",
    "step": 0,
    "scoring": "graded",
    "bar_p": 0.6435,
@@ -57,7 +57,7 @@
    "as_of": "2026-11-25T21:15:00Z",
    "vix3m": 26.29,
    "status": "live",
-   "fetched_at": "2026-11-27T03:40:35Z",
+   "fetched_at": "2026-11-27T04:52:58Z",
    "step": 0.5,
    "scoring": "graded",
    "bar_p": 0.73,
@@ -80,7 +80,7 @@
    "points": 0.875,
    "as_of": "2026-11-26T01:59:59Z",
    "status": "live",
-   "fetched_at": "2026-11-27T03:40:35Z",
+   "fetched_at": "2026-11-27T04:52:58Z",
    "step": 0.5,
    "scoring": "graded",
    "bar_p": 0.875,
@@ -105,7 +105,7 @@
    "date_only": true,
    "note": "מחושב לפי סגירת 25.11 · 297 מתוך 502 מניות",
    "status": "computed",
-   "fetched_at": "2026-11-27T03:40:35Z",
+   "fetched_at": "2026-11-27T04:52:58Z",
    "step": 0,
    "scoring": "graded",
    "bar_p": 0,
@@ -128,7 +128,7 @@
    "points": 1.0,
    "as_of": "2026-11-25T21:41:24Z",
    "status": "live",
-   "fetched_at": "2026-11-27T03:40:35Z",
+   "fetched_at": "2026-11-27T04:52:58Z",
    "step": 1,
    "scoring": "graded",
    "bar_p": 1,
@@ -163,7 +163,7 @@
     "sum199_last": 1463556.7021
    },
    "status": "live",
-   "fetched_at": "2026-11-27T03:40:35Z",
+   "fetched_at": "2026-11-27T04:52:58Z",
    "bar_p": 0.407,
    "bar_h": 0.5,
    "color": "gray"
@@ -194,7 +194,7 @@
     "sum199_last": 1463556.7021
    },
    "status": "live",
-   "fetched_at": "2026-11-27T03:40:35Z",
+   "fetched_at": "2026-11-27T04:52:58Z",
    "bar_p": 0.1925,
    "bar_h": 0.4167,
    "color": "gray"
@@ -219,7 +219,7 @@
    "note": "שוורים 33.3% · פער −8.9%",
    "as_of": "2026-11-21T16:31:08Z",
    "status": "live",
-   "fetched_at": "2026-11-27T03:40:35Z",
+   "fetched_at": "2026-11-27T04:52:58Z",
    "bar_p": 0.488,
    "bar_h": 0.6,
    "color": "gray"
@@ -229,11 +229,11 @@
   {
    "id": "y10",
    "label": "תשואת 10 שנים",
-   "value": 4.908,
+   "value": 4.912,
    "display": "4.91%",
-   "change": 1.24,
-   "as_of": "2026-11-27T03:39:35Z",
-   "fetched_at": "2026-11-27T03:40:35Z",
+   "change": 1.32,
+   "as_of": "2026-11-27T04:50:58Z",
+   "fetched_at": "2026-11-27T04:52:58Z",
    "status": "live",
    "source": "CNBC",
    "line": 5.25,
@@ -242,11 +242,11 @@
   {
    "id": "y30",
    "label": "תשואת 30 שנים",
-   "value": 5.293,
-   "display": "5.29%",
-   "change": 1.11,
-   "as_of": "2026-11-27T03:39:22Z",
-   "fetched_at": "2026-11-27T03:40:35Z",
+   "value": 5.296,
+   "display": "5.30%",
+   "change": 1.17,
+   "as_of": "2026-11-27T04:50:58Z",
+   "fetched_at": "2026-11-27T04:52:58Z",
    "status": "live",
    "source": "CNBC",
    "line": 5.5,
@@ -257,22 +257,22 @@
   {
    "id": "brent",
    "label": "נפט ברנט",
-   "value": 96.42,
-   "display": "$96.42",
-   "change": -0.16,
-   "as_of": "2026-11-27T03:30:31Z",
-   "fetched_at": "2026-11-27T03:40:35Z",
+   "value": 96.61,
+   "display": "$96.61",
+   "change": 0.04,
+   "as_of": "2026-11-27T04:42:53Z",
+   "fetched_at": "2026-11-27T04:52:58Z",
    "status": "live",
    "source": "CNBC"
   },
   {
    "id": "dxy",
    "label": "דולר DXY",
-   "value": 103.684,
-   "display": "103.68",
-   "change": 0.02,
-   "as_of": "2026-11-27T03:40:35Z",
-   "fetched_at": "2026-11-27T03:40:35Z",
+   "value": 103.751,
+   "display": "103.75",
+   "change": 0.08,
+   "as_of": "2026-11-27T04:52:58Z",
+   "fetched_at": "2026-11-27T04:52:58Z",
    "status": "live",
    "source": "CNBC"
   },
@@ -283,7 +283,7 @@
    "display": "26,047",
    "change": -0.64,
    "as_of": "2026-11-25T21:00:00Z",
-   "fetched_at": "2026-11-27T03:40:35Z",
+   "fetched_at": "2026-11-27T04:52:58Z",
    "status": "live",
    "source": "CNBC"
   },
@@ -293,13 +293,15 @@
    "value": 633.93,
    "display": "$633.93",
    "change": -0.65,
-   "as_of": "2026-11-25T21:00:00Z",
-   "fetched_at": "2026-11-27T03:40:35Z",
+   "as_of": "2026-11-25T21:00:01Z",
+   "fetched_at": "2026-11-27T04:52:58Z",
    "status": "live",
-   "source": "CNBC"
+   "source": "Yahoo"
   }
  ],
  "full_buy_threshold": 5.5,
  "full_buy_threshold_note": null,
- "log": []
+ "log": [
+  "[qqq] CNBC failed -> Yahoo: ValueError(\"could not convert string to float: 'UNCH'\")"
+ ]
 }
