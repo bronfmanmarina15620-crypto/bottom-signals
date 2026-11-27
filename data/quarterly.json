@@ -9,8 +9,8 @@
   "label": "נובמבר (עד כה)"
  },
  "method": "completed quarters: close-to-close; ytd / current quarter / current month: base close -> live price (CNBC, Yahoo fallback); price only, not dividend-adjusted",
- "live_as_of": "2026-11-27T18:19:35Z",
- "generated_at": "2026-11-27T18:19:39Z",
+ "live_as_of": "2026-11-27T18:49:41Z",
+ "generated_at": "2026-11-27T18:49:46Z",
  "rows": [
   {
    "id": "NDX",
@@ -55,7 +55,7 @@
    "ytd": 5.8477,
    "month": -5.8428,
    "live_px": 26726.388,
-   "live_as_of": "2026-11-27T18:19:35Z",
+   "live_as_of": "2026-11-27T18:49:41Z",
    "live_src": "CNBC"
   },
   {
@@ -101,7 +101,7 @@
    "ytd": 6.6027,
    "month": -3.7279,
    "live_px": 7297.49,
-   "live_as_of": "2026-11-27T18:19:35Z",
+   "live_as_of": "2026-11-27T18:38:39Z",
    "live_src": "CNBC"
   },
   {
@@ -147,7 +147,7 @@
    "ytd": 5.6418,
    "month": -1.9227,
    "live_px": 50774.94,
-   "live_as_of": "2026-11-27T18:19:35Z",
+   "live_as_of": "2026-11-27T18:38:45Z",
    "live_src": "CNBC"
   },
   {
