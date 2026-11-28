@@ -10,7 +10,7 @@
  },
  "method": "completed quarters: close-to-close; ytd / current quarter / current month: base close -> live price (CNBC, Yahoo fallback); price only, not dividend-adjusted",
  "live_as_of": "2026-11-27T19:15:59Z",
- "generated_at": "2026-11-28T03:22:30Z",
+ "generated_at": "2026-11-28T04:21:59Z",
  "rows": [
   {
    "id": "NDX",
